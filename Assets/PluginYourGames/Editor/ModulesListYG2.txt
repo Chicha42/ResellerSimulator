@@ -1,0 +1,9 @@
+Authorization v1.023
+Flags v1.001
+InterstitialAdv v1.02
+Metrica v1.02
+PlayerStats v1.01
+Review v1.0
+RewardedAdv v1.011
+ServerTime v1.02
+Storage v1.021
