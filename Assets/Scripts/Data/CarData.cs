@@ -9,7 +9,7 @@ public class CarData : ScriptableObject
     public int requiredSalesToUnlock; // Сколько продаж нужно для открытия (0, 2, 4...)
 
     [Header("Экономика")]
-    public int baseBuyPrice;   // Базовая цена покупки продавца
-    public int baseSellPrice;  // Базовая цена продажи
-    public float repairMultiplier = 1f; // Множитель ремонта (x1 для дешевых, x2, x3... для дорогих)
+    public int baseBuyPrice;   // База сегмента из BALANCE.md
+    public int baseSellPrice;  // Legacy: в формулах раздела 4 не используется
+    public float repairMultiplier = 1f; // Legacy: ремонт зависит от состояния машины
 }

@@ -85,3 +85,11 @@ crashlytics-build.properties
 # OS Junk
 .DS_Store
 Thumbs.db
+
+#Opencode
+AGENTS.md
+docs/ai-context/
+.opencode/
+Assets/Plugins/NuGet/
+Assets/Plugins/NuGet.meta
+opencode.json

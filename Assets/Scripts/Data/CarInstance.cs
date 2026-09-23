@@ -4,6 +4,9 @@ using UnityEngine;
 [System.Serializable]
 public class CarInstance
 {
+    private const float RepairCostMultiplier = 1.55f;
+    private const float FullRepairReferenceCost = 22000f;
+
     public CarData data;
     public int segment = 1;
 
@@ -74,13 +77,19 @@ public class CarInstance
         count = Mathf.Min(count, pool.Count);
         defects.Clear();
 
+        int fullRepairCost = 0;
+        for (int i = 0; i < count; i++)
+        {
+            fullRepairCost += pool[i].baseRepairCost;
+        }
+
         for (int i = 0; i < count; i++)
         {
             var def = pool[i];
-            // Формула из раздела 4: База × (Ремонт/22000) × Множ.ремонта × 1.55 × rand(0.8, 1.3)
+            // Формула из раздела 4: База дефекта × (Полный ремонт / 22 000) × Множ. ремонта × 1.55 × rand(0.8, 1.3)
             float costRand = Random.Range(0.8f, 1.3f);
-            float fullRepairRatio = (data.repairMultiplier > 0 ? data.repairMultiplier : 1.0f);
-            int finalCost = Mathf.RoundToInt(def.baseRepairCost * fullRepairRatio * repairMult * 1.55f * costRand);
+            float fullRepairRatio = fullRepairCost / FullRepairReferenceCost;
+            int finalCost = Mathf.RoundToInt(def.baseRepairCost * fullRepairRatio * repairMult * RepairCostMultiplier * costRand);
 
             def.baseRepairCost = finalCost;
             defects.Add(def);

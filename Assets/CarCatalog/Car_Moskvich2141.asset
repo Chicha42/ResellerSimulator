@@ -15,6 +15,6 @@ MonoBehaviour:
   id: 2
   carName: "\u041C\u043E\u0441\u043A\u0432\u0438\u0447 2141"
   requiredSalesToUnlock: 0
-  baseBuyPrice: 15000
-  baseSellPrice: 25000
+  baseBuyPrice: 20000
+  baseSellPrice: 20000
   repairMultiplier: 1

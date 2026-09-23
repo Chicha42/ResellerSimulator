@@ -96,26 +96,38 @@ public class PlayerData : MonoBehaviour
         return Mathf.RoundToInt(baseRepairCost * (1f - WarehouseDiscount));
     }
 
-    // Расчет финальной цены продажи (раздел 12)
+    // Расчет справедливой цены продажи (BALANCE.md, раздел 4)
     public int CalculateSellPrice(CarInstance car)
     {
-        float sellMultiplier = 1f;
+        float readiness = CalculateSaleReadiness(car);
+        float fairValue = car.data.baseBuyPrice
+                          * (0.62f + 0.58f * readiness)
+                          * (1f + ReputationBonus)
+                          * marketTrend;
+
+        return Mathf.RoundToInt(fairValue);
+    }
+
+    // Быстрая продажа без торга (BALANCE.md, раздел 4)
+    public int CalculateAsIsPrice(CarInstance car)
+    {
+        return Mathf.RoundToInt(CalculateSellPrice(car) * 0.95f);
+    }
+
+    private float CalculateSaleReadiness(CarInstance car)
+    {
+        float totalWeight = 0f;
+        float fixedWeight = 0f;
 
         foreach (var defect in car.defects)
         {
+            totalWeight += defect.sellBonus;
             if (defect.isFixed)
             {
-                sellMultiplier += defect.sellBonus;
+                fixedWeight += defect.sellBonus;
             }
         }
 
-        sellMultiplier *= (1f + ReputationBonus);
-        return Mathf.RoundToInt(car.data.baseSellPrice * sellMultiplier);
-    }
-
-    // Продажа «как есть» (аварийный выход = 60% от базовой цены продажи)
-    public int CalculateAsIsPrice(CarInstance car)
-    {
-        return Mathf.RoundToInt(car.data.baseSellPrice * 0.6f);
+        return totalWeight > 0f ? fixedWeight / totalWeight : 1f;
     }
 }
