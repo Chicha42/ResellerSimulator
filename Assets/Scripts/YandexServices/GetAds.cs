@@ -15,6 +15,8 @@ public class GetAds : MonoBehaviour
 
     public void ShowRewardedAd(string rewardID)
     {
+        Debug.Log($"[YG2] Кнопка нажата! Пытаемся показать рекламу с ID = '{rewardID}'");
+
         YG2.RewardedAdvShow(rewardID, () =>
         {
             Debug.Log($"[YG2] Награда получена: {rewardID}");
