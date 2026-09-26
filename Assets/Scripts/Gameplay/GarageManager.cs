@@ -22,9 +22,6 @@ public class GarageManager : MonoBehaviour
     [Header("Окно ремонта")]
     public GarageCarDetailsUI carDetailsModal;
 
-    // Цены расширения гаража по документу (1->15к, 2->50к, 3->150к, 4->400к, 5->1м)
-    private readonly int[] _slotCosts = { 0, 15000, 50000, 150000, 400000, 1000000 };
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -97,24 +94,20 @@ public class GarageManager : MonoBehaviour
     {
         if (expansionPanel == null) return;
 
-        int currentLvl = PlayerData.Instance.garageLevel;
-        // Максимум 6 мест (уровень 5)
-        if (currentLvl < 5)
+        // Цены мест — в PlayerData (BALANCE.md, раздел 5.3). Максимум 6 мест (уровень 4).
+        int nextCost = PlayerData.Instance.GarageUpgradeCost;
+        if (nextCost >= 0)
         {
             expansionPanel.SetActive(true);
-            int nextCost = _slotCosts[currentLvl + 1];
             textExpansionCost.text = $"+1 место · {nextCost:N0} ₽";
 
             btnBuyExpansion.interactable = PlayerData.Instance.money >= nextCost;
             btnBuyExpansion.onClick.RemoveAllListeners();
             btnBuyExpansion.onClick.AddListener(() =>
             {
-                if (PlayerData.Instance.money >= nextCost)
+                // Покупка прокачки не является игровым действием, такт не тратится
+                if (PlayerData.Instance.TryUpgradeGarage())
                 {
-                    PlayerData.Instance.money -= nextCost;
-                    PlayerData.Instance.garageLevel++;
-                    PlayerData.Instance.TickWorld();
-                    UIManager.Instance.UpdateTopBar();
                     RefreshGarage();
                 }
             });

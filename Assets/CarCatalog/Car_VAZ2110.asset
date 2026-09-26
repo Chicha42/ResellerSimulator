@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fdebfe0d0373a1e4dbeea57dcb9770d6, type: 3}
-  m_Name: Car_VAZ2109
+  m_Name: Car_VAZ2110
   m_EditorClassIdentifier: 
-  id: 1
-  carName: "\u0412\u0410\u0417 2109 \xAB\u0414\u0435\u0432\u044F\u0442\u043A\u0430\xBB"
-  requiredSalesToUnlock: 0
-  segment: 1
-  baseBuyPrice: 10000
-  baseSellPrice: 17000
-  repairMin: 3800
-  repairMax: 5000
+  id: 5
+  carName: "\u0412\u0410\u0417 2110"
+  requiredSalesToUnlock: 4
+  segment: 2
+  baseBuyPrice: 40000
+  baseSellPrice: 65000
+  repairMin: 15600
+  repairMax: 21900
