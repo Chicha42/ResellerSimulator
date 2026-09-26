@@ -19,10 +19,13 @@ public class GarageCarDetailsUI : MonoBehaviour
     public Button btnRepairAll;
     public TextMeshProUGUI textRepairAllCost;
     public Button btnQuickSell;
+    public Button btnHaggle;   // кнопка «Торговаться» (BALANCE.md, раздел 12.1)
     public Button btnClose;
 
+    [Header("Модалка торга (BALANCE.md, раздел 12.1)")]
+    public HaggleManager haggleModal; // ссылка на Modal_Haggle с компонентом HaggleManager
+
     private CarInstance _currentCar;
-    private Button _btnHaggle;
 
     public void Open(CarInstance car)
     {
@@ -39,8 +42,6 @@ public class GarageCarDetailsUI : MonoBehaviour
     public void Refresh()
     {
         if (_currentCar == null) return;
-
-        EnsureHaggleButton();
 
         textCarName.text = _currentCar.data.carName;
         textFinanceInfo.text = $"Куплено за: {_currentCar.buyPrice:N0} ₽ · Вложено: {_currentCar.totalRepairPaid:N0} ₽";
@@ -78,7 +79,7 @@ public class GarageCarDetailsUI : MonoBehaviour
 
             if (def.isFixed)
             {
-                rowText.text = $"✔ {def.defectName} — Отремонтировано";
+                rowText.text = $"{def.defectName} — Отремонтировано";
                 rowBtn.gameObject.SetActive(false);
             }
             else
@@ -102,7 +103,7 @@ public class GarageCarDetailsUI : MonoBehaviour
         }
         else
         {
-            textRepairAllCost.text = "✔ Все дефекты устранены";
+            textRepairAllCost.text = "Все дефекты устранены";
             btnRepairAll.interactable = false;
         }
 
@@ -110,25 +111,16 @@ public class GarageCarDetailsUI : MonoBehaviour
         btnQuickSell.onClick.RemoveAllListeners();
         btnQuickSell.onClick.AddListener(() => QuickSell(quickPrice));
 
+        // Открывает модалку торга (BALANCE.md, раздел 12.1)
+        if (btnHaggle != null)
+        {
+            btnHaggle.interactable = haggleModal != null;
+            btnHaggle.onClick.RemoveAllListeners();
+            btnHaggle.onClick.AddListener(() => haggleModal?.Open(_currentCar));
+        }
+
         btnClose.onClick.RemoveAllListeners();
         btnClose.onClick.AddListener(Close);
-    }
-
-    // Кнопка торговли создаётся в рантайме рядом с быстрой продажей
-    private void EnsureHaggleButton()
-    {
-        if (_btnHaggle != null) return;
-        if (btnQuickSell == null) return;
-
-        var src = btnQuickSell.GetComponent<RectTransform>();
-        _btnHaggle = UIFactory.Button(btnQuickSell.transform.parent, "Btn_Haggle", "💬 Торговаться",
-            UIFactory.Blue, Color.white, src.sizeDelta, () => HaggleUI.Instance?.Open(_currentCar));
-
-        var rt = _btnHaggle.GetComponent<RectTransform>();
-        rt.anchorMin = src.anchorMin;
-        rt.anchorMax = src.anchorMax;
-        rt.pivot = src.pivot;
-        rt.anchoredPosition = src.anchoredPosition + new Vector2(0f, src.sizeDelta.y + 12f);
     }
 
     private void RepairDefect(DefectInfo def, int cost)

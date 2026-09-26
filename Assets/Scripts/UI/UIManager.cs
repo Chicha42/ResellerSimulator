@@ -16,8 +16,6 @@ public class UIManager : MonoBehaviour
     public GameObject panelGarage;
     public GameObject panelUpgrades;
 
-    private HaggleUI _haggleUI;
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -31,22 +29,8 @@ public class UIManager : MonoBehaviour
         if (anyButton != null && anyButton.targetGraphic is Image img)
             UIFactory.ButtonSprite = img.sprite;
 
-        BuildRuntimeScreens();
-
         UpdateTopBar();
         ShowMarket(); // На старте открываем рынок
-    }
-
-    private void BuildRuntimeScreens()
-    {
-        // Экран прокачки теперь собран в сцене (UpgradesPanel + UpgradesManager),
-        // рантайм-отрисовка ему больше не нужна.
-
-        // Чат торга — поверх всего, на уровне контейнера панелей
-        Transform root = panelUpgrades != null ? panelUpgrades.transform.parent : transform;
-        var haggleGo = new GameObject("HaggleUI", typeof(RectTransform));
-        _haggleUI = haggleGo.AddComponent<HaggleUI>();
-        _haggleUI.Build(root);
     }
 
     // Обновление верхнего бара

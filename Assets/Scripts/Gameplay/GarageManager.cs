@@ -59,7 +59,7 @@ public class GarageManager : MonoBehaviour
         }
         else
         {
-            textTrendTitle.text = "⚖Рынок стабилен";
+            textTrendTitle.text = "Рынок стабилен";
             textTrendTitle.color = new Color32(138, 145, 163, 255);
         }
 
