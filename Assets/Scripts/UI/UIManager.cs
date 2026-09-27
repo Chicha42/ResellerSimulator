@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class UIManager : MonoBehaviour
@@ -23,6 +24,11 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        // Берём спрайт у существующей кнопки, чтобы новые элементы были в стиле прототипа
+        var anyButton = FindObjectOfType<Button>();
+        if (anyButton != null && anyButton.targetGraphic is Image img)
+            UIFactory.ButtonSprite = img.sprite;
+
         UpdateTopBar();
         ShowMarket(); // На старте открываем рынок
     }
@@ -40,19 +46,8 @@ public class UIManager : MonoBehaviour
         int maxSlots = PlayerData.Instance.MaxGarageSlots;
         textGarageSlots.text = $"Гараж: {currentCars}/{maxSlots}";
 
-        // Название репутации по документу
-        string repTitle = GetReputationTitle(PlayerData.Instance.totalSalesCount);
-        textReputation.text = $"Ур: {repTitle}";
-    }
-
-    private string GetReputationTitle(int sales)
-    {
-        if (sales >= 40) return "Легенда";
-        if (sales >= 25) return "Автобарон";
-        if (sales >= 15) return "Мастер";
-        if (sales >= 8)  return "Бывалый";
-        if (sales >= 3)  return "Любитель";
-        return "Новичок";
+        // Репутация: уровень + название (BALANCE.md, раздел 9)
+        textReputation.text = $"Ур. {PlayerData.Instance.ReputationLevel}: {PlayerData.Instance.ReputationTitle}";
     }
 
     // Методы переключения экранов для кнопок
@@ -75,5 +70,6 @@ public class UIManager : MonoBehaviour
         panelMarket.SetActive(false);
         panelGarage.SetActive(false);
         panelUpgrades.SetActive(true);
+        UpgradesManager.Instance?.Refresh();
     }
 }
