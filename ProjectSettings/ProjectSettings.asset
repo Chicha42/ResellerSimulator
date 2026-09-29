@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: 561ccbc30dfb4954499ae8b245d2f04c
+  productGUID: ba83e4b64931d07469eacc8b3466ebe6
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -16,7 +16,7 @@ PlayerSettings:
   productName: ResellerSimulator
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
-  m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_SplashScreenBackgroundColor: {r: 0.12156863, g: 0.12156863, b: 0.1254902, a: 1}
   m_ShowUnitySplashScreen: 1
   m_ShowUnitySplashLogo: 1
   m_SplashScreenOverlayOpacity: 1
@@ -47,7 +47,7 @@ PlayerSettings:
   defaultScreenWidthWeb: 960
   defaultScreenHeightWeb: 600
   m_StereoRenderingPath: 0
-  m_ActiveColorSpace: 1
+  m_ActiveColorSpace: 0
   unsupportedMSAAFallback: 0
   m_SpriteBatchMaxVertexCount: 65535
   m_SpriteBatchVertexThreshold: 300
@@ -79,7 +79,7 @@ PlayerSettings:
   androidMinimumWindowHeight: 300
   androidFullscreenMode: 1
   androidAutoRotationBehavior: 1
-  androidPredictiveBackSupport: 0
+  androidPredictiveBackSupport: 1
   androidApplicationEntry: 2
   defaultIsNativeResolution: 1
   macRetinaSupport: 1
@@ -143,8 +143,7 @@ PlayerSettings:
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
   bundleVersion: 1.0
-  preloadedAssets:
-  - {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -165,14 +164,13 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
-  applicationIdentifier:
-    Standalone: com.DefaultCompany.2D-URP
+  applicationIdentifier: {}
   buildNumber:
     Standalone: 0
     VisionOS: 0
     iPhone: 0
     tvOS: 0
-  overrideDefaultApplicationIdentifier: 1
+  overrideDefaultApplicationIdentifier: 0
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 23
   AndroidTargetSdkVersion: 0
@@ -253,9 +251,9 @@ PlayerSettings:
   iOSAutomaticallyDetectAndAddCapabilities: 1
   appleEnableProMotion: 0
   shaderPrecisionModel: 0
-  clonedFromGUID: c19f32bac17ee4170b3bf8a6a0333fb9
-  templatePackageId: com.unity.template.universal-2d@5.1.0
-  templateDefaultScene: Assets/Scenes/SampleScene.unity
+  clonedFromGUID: 00000000000000000000000000000000
+  templatePackageId: 
+  templateDefaultScene: 
   useCustomMainManifest: 0
   useCustomLauncherManifest: 0
   useCustomMainGradleTemplate: 0
@@ -289,7 +287,7 @@ PlayerSettings:
   AndroidMinifyRelease: 0
   AndroidMinifyDebug: 0
   AndroidValidateAppBundleSize: 1
-  AndroidAppBundleSizeToValidate: 150
+  AndroidAppBundleSizeToValidate: 200
   AndroidReportGooglePlayAppDependencies: 1
   androidSymbolsSizeThreshold: 800
   m_BuildTargetIcons: []
@@ -308,6 +306,7 @@ PlayerSettings:
   m_TemplateCustomTags: {}
   mobileMTRendering:
     Android: 1
+    VisionOS: 1
     iPhone: 1
     tvOS: 1
   m_BuildTargetGroupLightmapEncodingQuality: []
@@ -452,7 +451,7 @@ PlayerSettings:
   switchSystemResourceMemory: 16777216
   switchSupportedNpadStyles: 22
   switchNativeFsCacheSize: 32
-  switchIsHoldTypeHorizontal: 0
+  switchIsHoldTypeHorizontal: 1
   switchSupportedNpadCount: 8
   switchEnableTouchScreen: 1
   switchSocketConfigEnabled: 0
@@ -466,7 +465,7 @@ PlayerSettings:
   switchSocketInitializeEnabled: 1
   switchNetworkInterfaceManagerInitializeEnabled: 1
   switchDisableHTCSPlayerConnection: 0
-  switchUseNewStyleFilepaths: 0
+  switchUseNewStyleFilepaths: 1
   switchUseLegacyFmodPriorities: 0
   switchUseMicroSleepForYield: 1
   switchEnableRamDiskSupport: 0
@@ -554,17 +553,17 @@ PlayerSettings:
   blurSplashScreenBackground: 1
   spritePackerPolicy: 
   webGLMemorySize: 32
-  webGLExceptionSupport: 2
+  webGLExceptionSupport: 1
   webGLNameFilesAsHashes: 0
   webGLShowDiagnostics: 0
   webGLDataCaching: 1
   webGLDebugSymbols: 0
   webGLEmscriptenArgs: 
   webGLModulesDirectory: 
-  webGLTemplate: PROJECT:YandexGames
+  webGLTemplate: APPLICATION:Default
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
-  webGLCompressionFormat: 0
+  webGLCompressionFormat: 1
   webGLWasmArithmeticExceptions: 0
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
@@ -582,48 +581,24 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   scriptingDefineSymbols:
-<<<<<<< HEAD
-    Android: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    LinuxHeadlessSimulation: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    Nintendo Switch: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    PS4: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    PS5: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    Standalone: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    WebGL: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    Windows Store Apps: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    XboxOne: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    iPhone: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-    tvOS: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;RU_YG2;InterstitialAdv_yg;RewardedAdv_yg;Authorization_yg;Storage_yg;PlayerStats_yg;Metrica_yg;Review_yg;Flags_yg;ServerTime_yg
-=======
-    Android: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    EmbeddedLinux: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    GameCoreScarlett: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    GameCoreXboxOne: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    Kepler: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    LinuxHeadlessSimulation: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    Nintendo Switch: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    Nintendo Switch 2: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    PS4: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    PS5: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    QNX: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    Server: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    Standalone: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    VisionOS: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    WebGL: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    Windows Store Apps: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    XboxOne: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    iPhone: UNITY_MCP_READY;UNITY_MCP_DEPS_4
-    tvOS: UNITY_MCP_READY;UNITY_MCP_DEPS_4
->>>>>>> main
+    Android: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    LinuxHeadlessSimulation: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    Nintendo Switch: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    PS4: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    PS5: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    Standalone: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    WebGL: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    Windows Store Apps: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    XboxOne: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    iPhone: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
+    tvOS: PLUGIN_YG_2;YandexGamesPlatform_yg;Authorization_yg;Flags_yg;InterstitialAdv_yg;Metrica_yg;PlayerStats_yg;Review_yg;RewardedAdv_yg;ServerTime_yg;Storage_yg;TMP_YG2
   additionalCompilerArguments: {}
   platformArchitecture: {}
-  scriptingBackend:
-    Android: 1
+  scriptingBackend: {}
   il2cppCompilerConfiguration: {}
   il2cppCodeGeneration: {}
   il2cppStacktraceInformation: {}
-  managedStrippingLevel:
-    Standalone: 4
+  managedStrippingLevel: {}
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1
   allowUnsafeCode: 0
@@ -705,7 +680,7 @@ PlayerSettings:
     m_VersionCode: 1
     m_VersionName: 
   hmiPlayerDataPath: 
-  hmiForceSRGBBlit: 1
+  hmiForceSRGBBlit: 0
   embeddedLinuxEnableGamepadInput: 0
   hmiCpuConfiguration: 
   hmiLogStartupTiming: 0
@@ -714,11 +689,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 075eb1f9-0a5d-4443-816f-548acb48a98e
+  cloudProjectId: 
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: ResellerSimulator 2026-09-13_16-44-03
-  organizationId: unity_qkqcieerm81fra
+  projectName: 
+  organizationId: 
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
