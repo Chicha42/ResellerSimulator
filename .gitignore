@@ -76,3 +76,20 @@ crashlytics-build.properties
 
 # JetBrains Rider
 .idea/
+*RunSettings.json
+*RunSettings.json.meta
+*PerformanceTestRunInfo.json
+*PerformanceTestRunInfo.json.meta
+*.DotSettings.user
+
+# OS Junk
+.DS_Store
+Thumbs.db
+
+#Opencode
+AGENTS.md
+docs/ai-context/
+Assets/Plugins/NuGet/
+Assets/Plugins/NuGet.meta
+.opencode/
+opencode.json
