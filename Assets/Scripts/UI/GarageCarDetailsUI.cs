@@ -135,6 +135,7 @@ public class GarageCarDetailsUI : MonoBehaviour
         UIManager.Instance.UpdateTopBar();
         Refresh();
         GarageManager.Instance.RefreshGarage();
+        SaveManager.Instance?.SaveAll();
     }
 
     private void RepairAll(int totalCost)
@@ -151,6 +152,7 @@ public class GarageCarDetailsUI : MonoBehaviour
         UIManager.Instance.UpdateTopBar();
         Refresh();
         GarageManager.Instance.RefreshGarage();
+        SaveManager.Instance?.SaveAll();
     }
 
     private void QuickSell(int price)

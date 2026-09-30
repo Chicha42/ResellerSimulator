@@ -135,6 +135,8 @@ public class MarketManager : MonoBehaviour
         {
             Debug.Log("Не хватает денег!");
         }
+
+        SaveManager.Instance?.SaveAll();
     }
 
     // Запуск кулдауна: запоминаем абсолютный момент окончания (Time.time).
