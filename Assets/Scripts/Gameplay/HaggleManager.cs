@@ -212,6 +212,8 @@ public class HaggleManager : MonoBehaviour
 
         Debug.Log($"Сделка с покупателем: {_currentCar.data.carName} за {finalPrice:N0} ₽");
         Close();
+
+        SaveManager.Instance?.SaveAll();
     }
 
     // ───────────────────────── Логика торга (BALANCE.md, раздел 12.1) ─────────────────────────

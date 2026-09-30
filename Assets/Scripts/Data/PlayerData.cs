@@ -87,6 +87,8 @@ public class PlayerData : MonoBehaviour
             Debug.Log($"Списана стоянка за {garage.Count} авто: -{fee} Р");
             UIManager.Instance?.UpdateTopBar();
         }
+
+        SaveManager.Instance?.SaveAll();
     }
 
     private void Awake()

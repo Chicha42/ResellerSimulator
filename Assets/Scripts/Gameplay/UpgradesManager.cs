@@ -78,11 +78,13 @@ public class UpgradesManager : MonoBehaviour
     private void OnBuyDiagnost()
     {
         if (PlayerData.Instance.TryUpgradeDiagnost()) Refresh();
+        SaveManager.Instance?.SaveAll();
     }
 
     private void OnBuyStorage()
     {
         if (PlayerData.Instance.TryUpgradeWarehouse()) Refresh();
+        SaveManager.Instance?.SaveAll();
     }
 
     private void OnBuyGarage()
@@ -92,6 +94,8 @@ public class UpgradesManager : MonoBehaviour
             Refresh();
             GarageManager.Instance?.RefreshGarage();
         }
+
+        SaveManager.Instance?.SaveAll();
     }
 
     // Что даёт Диагност по уровням (BALANCE.md, раздел 5.1; видимость без прокачки — раздел 4).
