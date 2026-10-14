@@ -29,6 +29,20 @@ public class UIManager : MonoBehaviour
         if (anyButton != null && anyButton.targetGraphic is Image img)
             UIFactory.ButtonSprite = img.sprite;
 
+        // ── Retention-система: кнопки «Миссии / Достижения / Награда» внизу экрана ──
+        // UI собран в коде (Assets/Scripts/UI/RetentionUI.cs). Когда нарисуешь его в сцене —
+        // удали этот блок и файл RetentionUI.cs, логика (RetentionManager) продолжит работать.
+        // Ошибка здесь не должна ронять базовый интерфейс игры.
+        try
+        {
+            var retentionGo = new GameObject("RetentionUI", typeof(RectTransform));
+            retentionGo.AddComponent<RetentionUI>().Build(panelUpgrades != null ? panelUpgrades.transform.parent : transform);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[Retention] Не удалось построить UI: " + e);
+        }
+
         UpdateTopBar();
         ShowMarket(); // На старте открываем рынок
     }

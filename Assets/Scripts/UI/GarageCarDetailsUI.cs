@@ -32,6 +32,9 @@ public class GarageCarDetailsUI : MonoBehaviour
         _currentCar = car;
         gameObject.SetActive(true);
         Refresh();
+
+        // Retention: «Осмотр машины» двигает миссию «Точный диагноз» (retention, разделы 4/6).
+        RetentionManager.Instance?.OnCarInspected();
     }
 
     public void Close()
@@ -131,6 +134,9 @@ public class GarageCarDetailsUI : MonoBehaviour
         _currentCar.totalRepairPaid += cost;
         def.isFixed = true;
 
+        // Retention: ремонт дефекта двигает миссии (retention, раздел 6).
+        RetentionManager.Instance?.OnDefectsRepaired(1);
+
         PlayerData.Instance.TickWorld();
         UIManager.Instance.UpdateTopBar();
         Refresh();
@@ -145,8 +151,16 @@ public class GarageCarDetailsUI : MonoBehaviour
         PlayerData.Instance.money -= totalCost;
         _currentCar.totalRepairPaid += totalCost;
 
+        int repaired = 0;
         foreach (var def in _currentCar.defects)
+        {
+            if (def.isFixed) continue;
             def.isFixed = true;
+            repaired++;
+        }
+
+        // Retention: ремонт дефектов двигает миссии (retention, раздел 6).
+        RetentionManager.Instance?.OnDefectsRepaired(repaired);
 
         PlayerData.Instance.TickWorld();
         UIManager.Instance.UpdateTopBar();
@@ -164,6 +178,9 @@ public class GarageCarDetailsUI : MonoBehaviour
         PlayerData.Instance.totalSalesCount++;
         PlayerData.Instance.garage.Remove(_currentCar);
 
+        // Retention: продажа «Сдать сразу» (не через покупателя) — раздел 6.
+        RetentionManager.Instance?.OnCarSold(_currentCar, finalPrice, false, 0);
+
         PlayerData.Instance.TickWorld();
         UIManager.Instance.UpdateTopBar();
 
@@ -173,6 +190,8 @@ public class GarageCarDetailsUI : MonoBehaviour
 
     private int GetDiscountedCost(int baseCost)
     {
-        return PlayerData.Instance.CalculateRepairCost(baseCost);
+        int cost = PlayerData.Instance.CalculateRepairCost(baseCost);
+        // Retention: временная скидка календаря (день 3). Пока баффа нет — цена не меняется.
+        return RetentionManager.Instance != null ? RetentionManager.Instance.ApplyRepairDiscount(cost) : cost;
     }
 }

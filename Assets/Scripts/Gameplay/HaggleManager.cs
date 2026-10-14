@@ -203,6 +203,10 @@ public class HaggleManager : MonoBehaviour
         PlayerData.Instance.money += finalPrice;
         PlayerData.Instance.totalSalesCount++;
         PlayerData.Instance.garage.Remove(_currentCar);
+
+        // Retention: продажа через покупателя (retention, раздел 6). V — справедливая цена из сессии.
+        RetentionManager.Instance?.OnCarSold(_currentCar, finalPrice, true, _session != null ? _session.fairValue : 0);
+
         PlayerData.Instance.TickWorld(); // двигает тренд и стоянку (BALANCE.md, 12.2/12.4)
         UIManager.Instance?.UpdateTopBar();
 
