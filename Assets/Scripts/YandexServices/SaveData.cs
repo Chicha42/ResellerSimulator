@@ -33,4 +33,5 @@ public class SaveData
     public int actionTick;
     public int lastHaggleSessionTick;
     public List<CarSave> garage = new List<CarSave>();
+    public RetentionSave retention = new RetentionSave();
 }

@@ -705,8 +705,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1267760456}
   m_HandleRect: {fileID: 1267760455}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.9999999
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2858,6 +2858,7 @@ GameObject:
   - component: {fileID: 584108561}
   - component: {fileID: 584108563}
   - component: {fileID: 584108562}
+  - component: {fileID: 584108564}
   m_Layer: 0
   m_Name: SaveManagerObj
   m_TagString: Untagged
@@ -2951,6 +2952,18 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c3d4e5f60718293a4b5c6d7e8f901223, type: 2}
   - {fileID: 11400000, guid: 9043045896336f248956bf2615a30250, type: 2}
   - {fileID: 11400000, guid: 98843f216c228844bacc84c090a88bcc, type: 2}
+--- !u!114 &584108564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 584108560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c39731b6e65549d4997e7790baca5ac5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &633200476
 GameObject:
   m_ObjectHideFlags: 0
@@ -6603,7 +6616,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1619349973}
   m_HandleRect: {fileID: 1619349972}
   m_Direction: 0
-  m_Value: 0
+  m_Value: 1
   m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:

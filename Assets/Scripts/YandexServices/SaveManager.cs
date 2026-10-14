@@ -21,27 +21,30 @@ public class SaveManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        // РџРѕРґРїРёСЃС‹РІР°РµРјСЃСЏ РЅР° СЃРѕР±С‹С‚РёРµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё SDK вЂ” РіСЂСѓР·РёРј СЃРµР№РІ, РєРѕРіРґР° YG2 Р±СѓРґРµС‚ РіРѕС‚РѕРІ
         YG2.onGetSDKData += OnSDKReady;
     }
 
     private void OnSDKReady()
     {
-        YG2.onGetSDKData -= OnSDKReady; 
+        YG2.onGetSDKData -= OnSDKReady;
         LoadOnStart();
         _loaded = true;
     }
 
     private void Update()
     {
+        // РђРІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёРµ СЂР°Р· РІ 2 РјРёРЅСѓС‚С‹
         autoSaveTimer += Time.unscaledDeltaTime;
         if (autoSaveTimer >= AUTO_SAVE_INTERVAL)
         {
             autoSaveTimer = 0f;
-            Debug.Log("[SAVE] Автосохранение раз в 2 минуты");
+            Debug.Log("[SAVE] РђРІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёРµ СЂР°Р· РІ 2 РјРёРЅСѓС‚С‹");
             SaveAll();
         }
     }
 
+    // РЎРѕС…СЂР°РЅРµРЅРёРµ РїСЂРё Р·Р°РєСЂС‹С‚РёРё РёРіСЂС‹ Рё РїСЂРё СЃРІРѕСЂР°С‡РёРІР°РЅРёРё (РјРѕР±РёР»СЊРЅС‹Рµ РїР»Р°С‚С„РѕСЂРјС‹)
     private void OnApplicationQuit() => SaveAll();
     private void OnApplicationPause(bool pause) { if (pause) SaveAll(); }
 
@@ -52,23 +55,29 @@ public class SaveManager : MonoBehaviour
         string json = JsonUtility.ToJson(data);
         Debug.Log("[SAVE] JSON:\n" + json);
 
-        // 1. Локально (LocalStorage)
+        // 1. РЎРѕС…СЂР°РЅСЏРµРј Р»РѕРєР°Р»СЊРЅРѕ (LocalStorage)
         PlayerPrefs.SetString(LOCAL_KEY, json);
         PlayerPrefs.Save();
 
-        // 2. В облако YG2 
-        YG2.SetState("cloud_money", data.money);
-        YG2.SetState("cloud_sales", data.totalSalesCount);
-        YG2.SetState("cloud_diag", data.diagnostLevel);
-        YG2.SetState("cloud_ware", data.warehouseLevel);
-        YG2.SetState("cloud_garage", data.garageLevel);
-        YG2.SetState("cloud_trend_x100", Mathf.RoundToInt(data.marketTrend * 100f));
-        YG2.SetState("cloud_tick", data.actionTick);
-        YG2.SetState("cloud_haggle_tick", data.lastHaggleSessionTick);
-
+        // 2. РЎРѕС…СЂР°РЅСЏРµРј РєР»СЋС‡РµРІС‹Рµ С‡РёСЃР»Р° РІ РѕР±Р»Р°РєРѕ YG2
+        if (RetentionManager.Instance != null)
+        {
+            var r = RetentionManager.Instance.Export();
+            YG2.SetState("cloud_daily_streak", r.dailyStreak);
+            YG2.SetState("cloud_daily_date", r.lastDailyClaimDate);
+            YG2.SetState("cloud_missions_date", r.missionsDate);
+            YG2.SetState("cloud_money", data.money);
+            YG2.SetState("cloud_sales", data.totalSalesCount);
+            YG2.SetState("cloud_diag", data.diagnostLevel);
+            YG2.SetState("cloud_ware", data.warehouseLevel);
+            YG2.SetState("cloud_garage", data.garageLevel);
+            YG2.SetState("cloud_trend_x100", Mathf.RoundToInt(data.marketTrend * 100f));
+            YG2.SetState("cloud_tick", data.actionTick);
+            YG2.SetState("cloud_haggle_tick", data.lastHaggleSessionTick);
+        }
 
         YG2.SaveProgress();
-        Debug.Log("[SAVE] Сохранено локально + ключевые числа в облако");
+        Debug.Log("[SAVE] РЎРѕС…СЂР°РЅРµРЅРѕ Р»РѕРєР°Р»СЊРЅРѕ + РєР»СЋС‡РµРІС‹Рµ С‡РёСЃР»Р° РІ РѕР±Р»Р°РєРѕ");
     }
 
     private SaveData CollectFromPlayerData()
@@ -86,6 +95,7 @@ public class SaveManager : MonoBehaviour
             lastHaggleSessionTick = p.lastHaggleSessionTick
         };
 
+        // РџРµСЂРµРЅРѕСЃРёРј РІСЃРµ РјР°С€РёРЅС‹ РёР· РіР°СЂР°Р¶Р° РІ СЃРѕС…СЂР°РЅСЏРµРјС‹Р№ С„РѕСЂРјР°С‚
         foreach (var car in p.garage)
         {
             CarSave cs = new CarSave
@@ -113,65 +123,85 @@ public class SaveManager : MonoBehaviour
             data.garage.Add(cs);
         }
 
+        // Р—Р°Р±РёСЂР°РµРј СЃРѕСЃС‚РѕСЏРЅРёРµ retention-СЃРёСЃС‚РµРјС‹ (РјРёСЃСЃРёРё, daily reward, РґРѕСЃС‚РёР¶РµРЅРёСЏ)
+        if (RetentionManager.Instance != null)
+            data.retention = RetentionManager.Instance.Export();
+
         return data;
     }
 
 
     public void LoadOnStart()
+{
+    // РЁР°Рі 1. РџСЂРѕР±СѓРµРј РѕР±Р»Р°РєРѕ (С‡РёСЃР»Р°)
+    int cloudMoney = YG2.GetState("cloud_money");
+    int cloudSales = YG2.GetState("cloud_sales");
+    int cloudDiag = YG2.GetState("cloud_diag");
+    int cloudWare = YG2.GetState("cloud_ware");
+    int cloudGarage = YG2.GetState("cloud_garage");
+    int cloudTrend100 = YG2.GetState("cloud_trend_x100");
+    int cloudTick = YG2.GetState("cloud_tick");
+    int cloudHaggleTick = YG2.GetState("cloud_haggle_tick");
+
+    bool loadedFromCloud = false;
+
+    if (cloudMoney > 0)
     {
-        // Шаг 1. Облако
-        int cloudMoney = YG2.GetState("cloud_money");
-        int cloudSales = YG2.GetState("cloud_sales");
-        int cloudDiag = YG2.GetState("cloud_diag");
-        int cloudWare = YG2.GetState("cloud_ware");
-        int cloudGarage = YG2.GetState("cloud_garage");
-        int cloudTrend100 = YG2.GetState("cloud_trend_x100");
-        int cloudTick = YG2.GetState("cloud_tick");
-        int cloudHaggleTick = YG2.GetState("cloud_haggle_tick");
+        Debug.Log("[LOAD] Р”Р°РЅРЅС‹Рµ РёР· РѕР±Р»Р°РєР° (С‡РёСЃР»Р°)");
 
-        // Если в облаке что-то есть (money > 0) — берём облако
-        if (cloudMoney > 0)
+        var p = PlayerData.Instance;
+        p.money = cloudMoney;
+        p.totalSalesCount = cloudSales;
+        p.diagnostLevel = cloudDiag;
+        p.warehouseLevel = cloudWare;
+        p.garageLevel = cloudGarage;
+        p.marketTrend = cloudTrend100 > 0 ? cloudTrend100 / 100f : 1f;
+        p.actionTick = cloudTick;
+        p.lastHaggleSessionTick = cloudHaggleTick == 0 ? -999 : cloudHaggleTick;
+
+        loadedFromCloud = true;
+    }
+
+    // РЁР°Рі 2. Р›РѕРєР°Р»СЊРЅС‹Р№ JSON вЂ” РіСЂСѓР·РёРј РіР°СЂР°Р¶ Р retention Р’РЎР•Р“Р”Рђ
+    // (РІ РѕР±Р»Р°РєРµ РёС… РЅРµС‚, С‚Р°Рј С‚РѕР»СЊРєРѕ С‡РёСЃР»Р°)
+    if (PlayerPrefs.HasKey(LOCAL_KEY))
+    {
+        string json = PlayerPrefs.GetString(LOCAL_KEY);
+        Debug.Log("[LOAD] Р›РѕРєР°Р»СЊРЅС‹Р№ JSON:\n" + json);
+
+        try
         {
-            Debug.Log("[LOAD] Данные из ОБЛАКА");
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-            var p = PlayerData.Instance;
-            p.money = cloudMoney;
-            p.totalSalesCount = cloudSales;
-            p.diagnostLevel = cloudDiag;
-            p.warehouseLevel = cloudWare;
-            p.garageLevel = cloudGarage;
-            p.marketTrend = cloudTrend100 > 0 ? cloudTrend100 / 100f : 1f;
-            p.actionTick = cloudTick;
-            p.lastHaggleSessionTick = cloudHaggleTick == 0 ? -999 : cloudHaggleTick;
-
-            // Купленные машины попробуем восстановить из локального JSON
-            // (в облаке хранятся только числа)
-            LoadGarageFromLocal();
-
-            UIManager.Instance?.UpdateTopBar();
-            GarageManager.Instance?.RefreshGarage();
-            return;
-        }
-
-        // Шаг 2. LocalStorage
-        if (PlayerPrefs.HasKey(LOCAL_KEY))
-        {
-            string json = PlayerPrefs.GetString(LOCAL_KEY);
-            Debug.Log("[LOAD] Данные из ЛОКАЛА:\n" + json);
-            try
+            if (loadedFromCloud)
             {
-                SaveData data = JsonUtility.FromJson<SaveData>(json);
+                // Р§РёСЃР»Р° СѓР¶Рµ РІР·СЏР»Рё РёР· РѕР±Р»Р°РєР°, РёР· Р»РѕРєР°Р»Р° РґРѕР±РёСЂР°РµРј С‚РѕР»СЊРєРѕ РіР°СЂР°Р¶ Рё retention
+                RebuildGarage(data.garage);
+
+                if (RetentionManager.Instance != null && data.retention != null)
+                    RetentionManager.Instance.Import(data.retention);
+            }
+            else
+            {
+                // РћР±Р»Р°РєРѕ РїСѓСЃС‚РѕРµ вЂ” Р±РµСЂС‘Рј РІСЃС‘ РёР· Р»РѕРєР°Р»Р°
+                Debug.Log("[LOAD] РћР±Р»Р°РєРѕ РїСѓСЃС‚Рѕ вЂ” Р±РµСЂС‘Рј РІСЃС‘ РёР· Р»РѕРєР°Р»Р°");
                 ApplyToPlayerData(data);
             }
-            catch (Exception e)
-            {
-                Debug.LogError("[LOAD] Битый JSON: " + e.Message);
-            }
-            return;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("[LOAD] Р‘РёС‚С‹Р№ JSON: " + e.Message);
         }
 
-        Debug.Log("[LOAD] Новый игрок — данные по умолчанию");
+        UIManager.Instance?.UpdateTopBar();
+        GarageManager.Instance?.RefreshGarage();
+        return;
     }
+
+    // РЁР°Рі 3. РќРё РѕР±Р»Р°РєР°, РЅРё Р»РѕРєР°Р»Р° вЂ” РЅРѕРІС‹Р№ РёРіСЂРѕРє
+    if (!loadedFromCloud)
+        Debug.Log("[LOAD] РќРѕРІС‹Р№ РёРіСЂРѕРє вЂ” РґР°РЅРЅС‹С… РЅРёРіРґРµ РЅРµС‚");
+}
 
     private void LoadGarageFromLocal()
     {
@@ -183,7 +213,7 @@ public class SaveManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning("[LOAD] Не удалось восстановить гараж: " + e.Message);
+            Debug.LogWarning("[LOAD] РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ РіР°СЂР°Р¶: " + e.Message);
         }
     }
 
@@ -201,6 +231,10 @@ public class SaveManager : MonoBehaviour
 
         RebuildGarage(data.garage);
 
+        // РџСЂРёРјРµРЅСЏРµРј Р·Р°РіСЂСѓР¶РµРЅРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ retention-СЃРёСЃС‚РµРјС‹
+        if (RetentionManager.Instance != null)
+            RetentionManager.Instance.Import(data.retention);
+
         UIManager.Instance?.UpdateTopBar();
         GarageManager.Instance?.RefreshGarage();
     }
@@ -212,15 +246,15 @@ public class SaveManager : MonoBehaviour
 
         foreach (var cs in saved)
         {
-            // Ищем CarData в каталоге по id
+            // РС‰РµРј CarData РІ РєР°С‚Р°Р»РѕРіРµ РїРѕ id
             CarData data = allCarsCatalog.Find(c => c != null && c.id == cs.carDataId);
             if (data == null)
             {
-                Debug.LogWarning($"[LOAD] Машина с id={cs.carDataId} не найдена в каталоге — пропущена");
+                Debug.LogWarning($"[LOAD] РњР°С€РёРЅР° СЃ id={cs.carDataId} РЅРµ РЅР°Р№РґРµРЅР° РІ РєР°С‚Р°Р»РѕРіРµ вЂ” РїСЂРѕРїСѓС‰РµРЅР°");
                 continue;
             }
 
-            // Создаём "пустой" инстанс и вручную перезаписываем его поля
+            // РЎРѕР·РґР°С‘Рј "РїСѓСЃС‚РѕР№" РёРЅСЃС‚Р°РЅСЃ Рё РІСЂСѓС‡РЅСѓСЋ РїРµСЂРµР·Р°РїРёСЃС‹РІР°РµРј РµРіРѕ РїРѕР»СЏ
             CarInstance car = new CarInstance(data, cs.segment);
             car.conditionPercent = cs.conditionPercent;
             car.conditionName = cs.conditionName;
@@ -243,30 +277,30 @@ public class SaveManager : MonoBehaviour
             p.garage.Add(car);
         }
 
-        Debug.Log($"[LOAD] Восстановлено машин: {p.garage.Count}");
+        Debug.Log($"[LOAD] Р’РѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРѕ РјР°С€РёРЅ: {p.garage.Count}");
     }
 
     private string GetDefectName(DefectType type)
     {
         return type switch
         {
-            DefectType.Body => "Кузов",
-            DefectType.Engine => "Двигатель",
-            DefectType.Suspension => "Подвеска",
-            DefectType.Wheels => "Колёса",
-            DefectType.Interior => "Салон",
-            _ => "Дефект"
+            DefectType.Body => "РљСѓР·РѕРІ",
+            DefectType.Engine => "Р”РІРёРіР°С‚РµР»СЊ",
+            DefectType.Suspension => "РџРѕРґРІРµСЃРєР°",
+            DefectType.Wheels => "РљРѕР»С‘СЃР°",
+            DefectType.Interior => "РЎР°Р»РѕРЅ",
+            _ => "Р”РµС„РµРєС‚"
         };
     }
 
 
     public void WipeAll()
     {
-        // 1. Локально
+        // 1. Р›РѕРєР°Р»СЊРЅРѕ
         PlayerPrefs.DeleteKey(LOCAL_KEY);
         PlayerPrefs.Save();
 
-        // 2. Облако YG2
+        // 2. РћР±Р»Р°РєРѕ YG2
         YG2.SetState("cloud_money", 0);
         YG2.SetState("cloud_sales", 0);
         YG2.SetState("cloud_diag", 0);
@@ -275,9 +309,12 @@ public class SaveManager : MonoBehaviour
         YG2.SetState("cloud_trend_x100", 0);
         YG2.SetState("cloud_tick", 0);
         YG2.SetState("cloud_haggle_tick", 0);
+        YG2.SetState("cloud_daily_streak", 0);
+        YG2.SetState("cloud_daily_date", 0);
+        YG2.SetState("cloud_missions_date", 0);
         YG2.SaveProgress();
 
-        // 3. Сбрасываем данные игрока в исходное состояние
+        // 3. РЎР±СЂР°СЃС‹РІР°РµРј РґР°РЅРЅС‹Рµ РёРіСЂРѕРєР° РІ РёСЃС…РѕРґРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ
         var p = PlayerData.Instance;
         p.money = 25000;
         p.totalSalesCount = 0;
@@ -289,10 +326,13 @@ public class SaveManager : MonoBehaviour
         p.lastHaggleSessionTick = -999;
         p.garage.Clear();
 
-        // 4. Обновляем интерфейс
+        // РЎР±СЂР°СЃС‹РІР°РµРј retention-СЃРёСЃС‚РµРјСѓ (РјРёСЃСЃРёРё, daily reward, РґРѕСЃС‚РёР¶РµРЅРёСЏ)
+        RetentionManager.Instance?.ResetAll();
+
+        // 4. РћР±РЅРѕРІР»СЏРµРј РёРЅС‚РµСЂС„РµР№СЃ
         UIManager.Instance?.UpdateTopBar();
         GarageManager.Instance?.RefreshGarage();
 
-        Debug.Log("[SAVE] Прогресс полностью сброшен");
+        Debug.Log("[SAVE] РџСЂРѕРіСЂРµСЃСЃ РїРѕР»РЅРѕСЃС‚СЊСЋ СЃР±СЂРѕС€РµРЅ");
     }
 }
