@@ -130,10 +130,6 @@ public class MarketManager : MonoBehaviour
             PlayerData.Instance.TickWorld();
             UIManager.Instance.UpdateTopBar();
             Debug.Log($"Успешно куплен {car.data.carName} за {car.buyPrice:N0} ₽");
-
-            // Retention: покупка двигает миссии и достижения (retention, раздел 6).
-            // listPrice = цена продавца; скидка появится, когда реализуют торг при покупке (BALANCE, раздел 6).
-            RetentionManager.Instance?.OnCarBought(car.data, car.buyPrice, car.data.baseBuyPrice);
         }
         else
         {

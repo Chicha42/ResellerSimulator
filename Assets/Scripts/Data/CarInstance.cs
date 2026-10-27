@@ -32,28 +32,19 @@ public class CarInstance
 
     private void GenerateCar()
     {
-        // ── Состояние по зонам. BALANCE.md НЕ задаёт распределение состояния —
+        // ── 1. Состояние по зонам. BALANCE.md НЕ задаёт распределение состояния —
         //    это значения прототипа: чем дороже зона, тем выше шанс убитой машины.
         //    Меняй границы здесь, если понадобится другой разброс.
-        int percent;
         switch (segment)
         {
-            case 1:  percent = Random.Range(40, 101); break; // Зона 1: 40-100% (без «Убитого»)
-            case 2:  percent = Random.Range(30, 101); break; // Зона 2: 30-100%
-            case 3:  percent = Random.Range(20, 101); break; // Зона 3: 20-100%
-            case 4:  percent = Random.Range(10, 101); break; // Зона 4: 10-100%
-            default: percent = Random.Range(0, 101);  break; // Зона 5: 0-100%
+            case 1:  conditionPercent = Random.Range(40, 101); break; // Зона 1: 40-100% (без «Убитого»)
+            case 2:  conditionPercent = Random.Range(30, 101); break; // Зона 2: 30-100%
+            case 3:  conditionPercent = Random.Range(20, 101); break; // Зона 3: 20-100%
+            case 4:  conditionPercent = Random.Range(10, 101); break; // Зона 4: 10-100%
+            default: conditionPercent = Random.Range(0, 101);  break; // Зона 5: 0-100%
         }
 
-        ApplyCondition(percent);
-    }
-
-    // Задать состояние машины вручную (используется и для подарочной машины календаря — retention, раздел 3).
-    public void ApplyCondition(int percent)
-    {
-        conditionPercent = Mathf.Clamp(percent, 0, 100);
-
-        // ── Имя состояния по BALANCE.md, раздел 4 (пороги 90/70/50/25).
+        // ── 2. Имя состояния по BALANCE.md, раздел 4 (пороги 90/70/50/25).
         //    Число дефектов (dMin..dMax) в балансе не задано — значения прототипа.
         //    Важно: минимум 1 дефект, иначе полный ремонт = 0 и прибыль превысит «Лучший» из таблицы.
         int dMin, dMax;
@@ -63,22 +54,14 @@ public class CarInstance
         else if (conditionPercent >= 25) { conditionName = "Плохое";   dMin = 3; dMax = 4; }
         else                             { conditionName = "Убитое";   dMin = 4; dMax = 5; }
 
-        // ── Цена покупки (BALANCE.md, раздел 1: «Цена покупки = цена продавца × (1 − скидка торга)»).
+        // ── 3. Цена покупки (BALANCE.md, раздел 1: «Цена покупки = цена продавца × (1 − скидка торга)»).
         //    Торг при покупке (раздел 6) пока не реализован, поэтому скидка = 0
         //    и цена покупки равна табличной колонке «Покупка».
         buyPrice = data.baseBuyPrice;
 
+        // ── 4. Генерация дефектов
         int defectCount = Random.Range(dMin, dMax + 1);
         GenerateRandomDefects(defectCount);
-    }
-
-    // Подарочная машина календаря входов (retention, раздел 3): состояние «Хорошее» (1–2 дефекта),
-    // записывается в гараж по цене покупки. Проходит через продажу/репутацию/миссии как обычная.
-    public static CarInstance CreateGiftCar(CarData carData, int carSegment)
-    {
-        var car = new CarInstance(carData, carSegment);
-        car.ApplyCondition(Random.Range(70, 90)); // «Хорошее» по порогам раздела 4
-        return car;
     }
 
     private void GenerateRandomDefects(int count)
