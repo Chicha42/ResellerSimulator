@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 37
   carName: "Mercedes C-\u043A\u043B\u0430\u0441\u0441"
-  requiredSalesToUnlock: 11
+  requiredSalesToUnlock: 25
   segment: 4
-  baseBuyPrice: 300000
+  baseBuyPrice: 340800
   baseSellPrice: 480000
-  repairMin: 149800
-  repairMax: 194800
+  repairMin: 230400
+  repairMax: 230400

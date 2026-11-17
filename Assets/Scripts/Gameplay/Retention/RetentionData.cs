@@ -64,10 +64,11 @@ public class RetentionSave
     public int discountBuys10;                // покупки со скидкой ≥10%
     public int haggleBuys25;                  // успешные сделки с торгом при покупке
     public int segmentsBoughtMask;            // битовая маска купленных классов (зон) 1..5
-    public bool boughtMostExpensive;          // куплена самая дорогая доступная модель
+    public bool boughtMostExpensive;          // куплена самая дорогая модель из всего каталога
     public int dealsProfit25;                 // сделки с прибылью ≥25%
     public int consecutiveProfitable;         // текущая серия прибыльных сделок
     public bool reachedAutoBaron;             // достигнута репутация «Автобарон» (ур. 5)
     public bool reachedMillion;               // на счету когда-либо было ≥ 1 000 000 ₽
     public int claimedAchievementsMask;       // битовая маска полученных наград (15 бит)
+    public int mostExpensiveAchievementVersion;
 }

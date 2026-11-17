@@ -53,11 +53,27 @@ public static class RetentionCatalog
         "Купить машину со скидкой ≥10%",
         "Продать машину с прибылью ≥20% от вложений",
         "Купить со скидкой ≥15% и продать с прибылью ≥20%",
-        "Продать через покупателя не ниже 110% V",
+        "Продать через покупателя не ниже 110% рыночной стоимости",
         "Завершить сделку с прибылью ≥30% от вложений",
         "Заработать 3 Pz за день",
-        "Продать 3 машины через покупателей не ниже V"
+        "Продать 3 машины через покупателей не ниже рыночной стоимости"
     };
+
+    // Торг при покупке в текущей версии игры отсутствует.
+    public static bool IsMissionAvailable(MissionType type) => type != MissionType.BuyDiscountFive
+        && type != MissionType.BuyDiscountTen
+        && type != MissionType.BuyDiscountAndProfit;
+
+    public static MissionType RandomAvailableMission(int difficulty)
+    {
+        int[] available = difficulty switch
+        {
+            0 => new[] { 0, 1, 2, 4 },
+            1 => new[] { 5, 6, 7, 9 },
+            _ => new[] { 11, 12, 13, 14 }
+        };
+        return (MissionType)available[UnityEngine.Random.Range(0, available.Length)];
+    }
 
     // Цель миссии. pzAtIssue — Pz зоны на момент выдачи (фиксируется, retention раздел 4).
     public static int MissionTarget(MissionType type, int pzAtIssue)
@@ -122,7 +138,7 @@ public static class RetentionCatalog
         "10 покупок со скидкой ≥10%",
         "25 успешных сделок с торгом при покупке",
         "Купить по одной машине каждого класса (зоны)",
-        "Купить самую дорогую доступную модель",
+        "Купить самую дорогую машину в игре",
         "Иметь в гараже машины всех классов (зон)",
         "Диагност на максимальном уровне",
         "Склад запчастей на максимальном уровне",
@@ -140,6 +156,9 @@ public static class RetentionCatalog
         5000, 15000, 35000, 60000, 75000, 100000, 50000, 50000, 50000,
         75000, 100000, 75000, 75000, 150000, 110000
     };
+
+    // Достижения 1–3 требуют торга при покупке, которого пока нет в игре.
+    public static bool IsAchievementAvailable(int index) => index != 1 && index != 2 && index != 3;
 
     public const int AchievementCount = 15;
     public const int MissionPerDay = 3;

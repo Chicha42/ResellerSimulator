@@ -4,14 +4,14 @@ using UnityEngine;
 [System.Serializable]
 public class CarInstance
 {
-    // ── BALANCE.md, раздел 4: базовые стоимости 5 узлов. Сумма = 22 000 ₽.
-    // Используются как ВЕСА, по которым раскладывается полный ремонт машины (repairMin..repairMax)
-    // на конкретные дефекты этой машины. Менять здесь — менять доли узлов в стоимости ремонта.
-    private const int BodyBaseCost = 5000;
-    private const int EngineBaseCost = 8000;
-    private const int SuspensionBaseCost = 4000;
-    private const int WheelsBaseCost = 3000;
-    private const int InteriorBaseCost = 2000;
+    // Баланс 4.0, раздел 3: относительные доли узлов в суммарной стоимости ремонта.
+    private const int BodyRepairWeight = 5;
+    private const int EngineRepairWeight = 8;
+    private const int SuspensionRepairWeight = 4;
+    private const int WheelsRepairWeight = 3;
+    private const int InteriorRepairWeight = 2;
+    private const int TotalRepairWeight = 22;
+    private static readonly float[] ZoneRepairRates = { 0f, 0.25f, 0.32f, 0.42f, 0.48f, 0.52f };
 
     public CarData data;
     public int segment = 1;
@@ -22,6 +22,7 @@ public class CarInstance
 
     public List<DefectInfo> defects = new List<DefectInfo>();
     public int totalRepairPaid = 0;
+    public SaleListingData saleListing;
 
     public CarInstance(CarData carData, int carSegment = 1)
     {
@@ -32,67 +33,100 @@ public class CarInstance
 
     private void GenerateCar()
     {
-        // ── Состояние по зонам. BALANCE.md НЕ задаёт распределение состояния —
-        //    это значения прототипа: чем дороже зона, тем выше шанс убитой машины.
-        //    Меняй границы здесь, если понадобится другой разброс.
-        int percent;
-        switch (segment)
-        {
-            case 1:  percent = Random.Range(40, 101); break; // Зона 1: 40-100% (без «Убитого»)
-            case 2:  percent = Random.Range(30, 101); break; // Зона 2: 30-100%
-            case 3:  percent = Random.Range(20, 101); break; // Зона 3: 20-100%
-            case 4:  percent = Random.Range(10, 101); break; // Зона 4: 10-100%
-            default: percent = Random.Range(0, 101);  break; // Зона 5: 0-100%
-        }
-
-        ApplyCondition(percent);
+        // Состояние объявления, вероятность, цена и количество дефектов заданы разделом 2.
+        conditionName = RollCondition();
+        RollConditionPercent();
+        ApplyCondition(conditionPercent);
     }
 
-    // Задать состояние машины вручную (используется и для подарочной машины календаря — retention, раздел 3).
+    // Установить состояние вручную; используется системой подарка retention.
     public void ApplyCondition(int percent)
     {
         conditionPercent = Mathf.Clamp(percent, 0, 100);
+        conditionName = conditionPercent >= 90 ? "Отличное"
+            : conditionPercent >= 70 ? "Хорошее"
+            : conditionPercent >= 50 ? "Среднее"
+            : conditionPercent >= 25 ? "Плохое" : "Убитое";
 
-        // ── Имя состояния по BALANCE.md, раздел 4 (пороги 90/70/50/25).
-        //    Число дефектов (dMin..dMax) в балансе не задано — значения прототипа.
-        //    Важно: минимум 1 дефект, иначе полный ремонт = 0 и прибыль превысит «Лучший» из таблицы.
-        int dMin, dMax;
-        if (conditionPercent >= 90)      { conditionName = "Отличное"; dMin = 1; dMax = 1; }
-        else if (conditionPercent >= 70) { conditionName = "Хорошее";  dMin = 1; dMax = 2; }
-        else if (conditionPercent >= 50) { conditionName = "Среднее";  dMin = 2; dMax = 3; }
-        else if (conditionPercent >= 25) { conditionName = "Плохое";   dMin = 3; dMax = 4; }
-        else                             { conditionName = "Убитое";   dMin = 4; dMax = 5; }
+        buyPrice = CalculateBuyPrice();
 
-        // ── Цена покупки (BALANCE.md, раздел 1: «Цена покупки = цена продавца × (1 − скидка торга)»).
-        //    Торг при покупке (раздел 6) пока не реализован, поэтому скидка = 0
-        //    и цена покупки равна табличной колонке «Покупка».
-        buyPrice = data.baseBuyPrice;
-
-        int defectCount = Random.Range(dMin, dMax + 1);
+        int defectCount = conditionName switch
+        {
+            "Убитое" => Random.Range(4, 6),
+            "Плохое" => Random.Range(3, 5),
+            "Среднее" => Random.Range(2, 4),
+            "Хорошее" => Random.Range(1, 3),
+            _ => Random.Range(0, 2)
+        };
         GenerateRandomDefects(defectCount);
     }
 
-    // Подарочная машина календаря входов (retention, раздел 3): состояние «Хорошее» (1–2 дефекта),
-    // записывается в гараж по цене покупки. Проходит через продажу/репутацию/миссии как обычная.
+    // Подарочная машина retention: хорошее состояние, покупка по базовой цене ассета.
     public static CarInstance CreateGiftCar(CarData carData, int carSegment)
     {
         var car = new CarInstance(carData, carSegment);
-        car.ApplyCondition(Random.Range(70, 90)); // «Хорошее» по порогам раздела 4
+        car.ApplyCondition(Random.Range(70, 90));
+        car.buyPrice = carData.baseBuyPrice;
         return car;
+    }
+
+    private string RollCondition()
+    {
+        float roll = Random.value * 100f;
+        float[] chances = segment switch
+        {
+            1 => new[] { 0f, 0f, 20f, 45f, 35f },
+            2 => new[] { 0f, 15f, 30f, 35f, 20f },
+            3 => new[] { 10f, 20f, 30f, 25f, 15f },
+            4 => new[] { 15f, 25f, 30f, 20f, 10f },
+            _ => new[] { 20f, 25f, 30f, 15f, 10f }
+        };
+        string[] names = { "Убитое", "Плохое", "Среднее", "Хорошее", "Отличное" };
+        for (int i = 0; i < chances.Length; i++)
+        {
+            roll -= chances[i];
+            if (roll < 0f) return names[i];
+        }
+        return "Отличное";
+    }
+
+    private void RollConditionPercent()
+    {
+        conditionPercent = conditionName switch
+        {
+            "Отличное" => Random.Range(90, 101),
+            "Хорошее" => Random.Range(70, 90),
+            "Среднее" => Random.Range(50, 70),
+            "Плохое" => Random.Range(25, 50),
+            _ => Random.Range(0, 25)
+        };
+    }
+
+    private int CalculateBuyPrice()
+    {
+        float zonePriceFactor = segment switch
+        {
+            1 => 0.67f, 2 => 0.68f, 3 => 0.72f, 4 => 0.71f, _ => 0.70f
+        };
+        float statePriceFactor = conditionName switch
+        {
+            "Убитое" => 0.70f, "Плохое" => 0.85f, "Хорошее" => 1.12f,
+            "Отличное" => 1.25f, _ => 1.00f
+        };
+        float value = data.baseSellPrice * zonePriceFactor * statePriceFactor * Random.Range(0.97f, 1.03f);
+        return PlayerData.RoundPrice(value);
     }
 
     private void GenerateRandomDefects(int count)
     {
-        // Пул всех 5 возможных дефектов (BALANCE.md, раздел 4).
-        // baseRepairCost здесь — БАЗОВЫЙ вес узла (5 000 / 8 000 / 4 000 / 3 000 / 2 000),
-        // sellBonus — вес влияния на продажу (8% / 12% / 6% / 5% / 3%, раздел 4).
+        // Стоимость каждого присутствующего дефекта = доля узла × R(зоны) × S.
         List<DefectInfo> pool = new List<DefectInfo>()
         {
-            new DefectInfo { type = DefectType.Body,       defectName = "Кузов",      baseRepairCost = BodyBaseCost,       sellBonus = 0.08f },
-            new DefectInfo { type = DefectType.Engine,     defectName = "Двигатель",  baseRepairCost = EngineBaseCost,     sellBonus = 0.12f },
-            new DefectInfo { type = DefectType.Suspension, defectName = "Подвеска",   baseRepairCost = SuspensionBaseCost, sellBonus = 0.06f },
-            new DefectInfo { type = DefectType.Wheels,     defectName = "Колёса",     baseRepairCost = WheelsBaseCost,     sellBonus = 0.05f },
-            new DefectInfo { type = DefectType.Interior,   defectName = "Салон",      baseRepairCost = InteriorBaseCost,   sellBonus = 0.03f }
+            new DefectInfo { type = DefectType.Body,       defectName = "Кузов",      baseRepairCost = GetNodeRepairCost(BodyRepairWeight),       sellBonus = 0.08f },
+            new DefectInfo { type = DefectType.Engine,     defectName = "Двигатель",  baseRepairCost = GetNodeRepairCost(EngineRepairWeight),     sellBonus = 0.12f },
+            new DefectInfo { type = DefectType.Suspension, defectName = "Подвеска",   baseRepairCost = GetNodeRepairCost(SuspensionRepairWeight), sellBonus = 0.06f },
+            new DefectInfo { type = DefectType.Wheels,     defectName = "Колёса",     baseRepairCost = GetNodeRepairCost(WheelsRepairWeight),     sellBonus = 0.05f },
+            new DefectInfo { type = DefectType.Interior,   defectName = "Салон",      baseRepairCost = GetNodeRepairCost(InteriorRepairWeight),   sellBonus = 0.03f }
         };
 
         // Перемешиваем пул случайным образом
@@ -105,27 +139,15 @@ public class CarInstance
         count = Mathf.Min(count, pool.Count);
         List<DefectInfo> present = pool.GetRange(0, count);
 
-        // ── BALANCE.md, раздел 3 (таблица 3.1): полный ремонт машины стоит случайную сумму
-        //    в вилке [repairMin .. repairMax]. Эта сумма — источник истины, её и раскладываем.
-        int targetRepair = Random.Range(data.repairMin, data.repairMax + 1);
-
-        int weightSum = 0;
-        foreach (var d in present) weightSum += d.baseRepairCost;
-
         defects.Clear();
-        int distributed = 0;
-        for (int i = 0; i < present.Count; i++)
-        {
-            int cost;
-            if (i == present.Count - 1)
-                cost = Mathf.Max(0, targetRepair - distributed); // остаток отдаём последнему узлу — сумма точная
-            else
-                cost = Mathf.RoundToInt((float)targetRepair * present[i].baseRepairCost / weightSum);
+        defects.AddRange(present);
+    }
 
-            distributed += cost;
-            present[i].baseRepairCost = cost; // итоговая база ремонта ЭТОЙ машины (до скидки склада)
-            defects.Add(present[i]);
-        }
+    private int GetNodeRepairCost(int nodeWeight)
+    {
+        float rate = ZoneRepairRates[Mathf.Clamp(segment, 1, 5)];
+        float value = data.baseSellPrice * rate * nodeWeight / TotalRepairWeight;
+        return PlayerData.RoundPrice(value);
     }
 
     // Видимость дефектов (BALANCE.md, раздел 4 для уровня 0 и раздел 5.1 для уровней 1-4).
@@ -136,13 +158,9 @@ public class CarInstance
 
         int visibleLimit = diagnostLevel switch
         {
-            // Без «Диагноста» видно не 1-2 случайных, а зависит от состояния машины (раздел 4):
-            // 90-100% -> 0, 70-89% -> 1, 50-69% -> 2, 25-49% -> 2, 0-24% -> 3.
-            0 => conditionPercent >= 90 ? 0
-                 : conditionPercent >= 70 ? 1
-                 : conditionPercent >= 50 ? 2
-                 : conditionPercent >= 25 ? 2
-                 : 3,
+            // Без «Диагноста» показываем лимит, заданный состоянием объявления.
+            0 => conditionName == "Отличное" ? 0 : conditionName == "Хорошее" ? 1
+                 : conditionName == "Убитое" ? 3 : 2,
             // Уровни Диагноста (раздел 5.1): 1 -> 2, 2 -> 4, 3 и 4 -> все дефекты.
             1 => 2,
             2 => 4,

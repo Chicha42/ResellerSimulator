@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 41
   carName: Cadillac CTS
-  requiredSalesToUnlock: 13
+  requiredSalesToUnlock: 32
   segment: 4
-  baseBuyPrice: 420000
+  baseBuyPrice: 475700
   baseSellPrice: 670000
-  repairMin: 193400
-  repairMax: 270700
+  repairMin: 321600
+  repairMax: 321600

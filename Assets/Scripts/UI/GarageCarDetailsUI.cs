@@ -21,15 +21,26 @@ public class GarageCarDetailsUI : MonoBehaviour
     public Button btnQuickSell;
     public Button btnHaggle;   // кнопка «Торговаться» (BALANCE.md, раздел 12.1)
     public Button btnClose;
+    public TMP_InputField askingPriceInput;
+    public SaleSetupPanelUI saleSetupPanel;
 
     [Header("Модалка торга (BALANCE.md, раздел 12.1)")]
     public HaggleManager haggleModal; // ссылка на Modal_Haggle с компонентом HaggleManager
 
     private CarInstance _currentCar;
+    public CarInstance CurrentCar => _currentCar;
+    private CarInstance _askingPriceCar;
+    private int _lastSuggestedAskingPrice = -1;
 
     public void Open(CarInstance car)
     {
         _currentCar = car;
+        if (_askingPriceCar != car)
+        {
+            _askingPriceCar = car;
+            _lastSuggestedAskingPrice = -1;
+        }
+        RefreshSuggestedAskingPrice();
         gameObject.SetActive(true);
         Refresh();
 
@@ -47,20 +58,13 @@ public class GarageCarDetailsUI : MonoBehaviour
         if (_currentCar == null) return;
 
         textCarName.text = _currentCar.data.carName;
-        textFinanceInfo.text = $"Куплено за: {_currentCar.buyPrice:N0} ₽ · Вложено: {_currentCar.totalRepairPaid:N0} ₽";
+        textFinanceInfo.text = $"Всего вложено: {(_currentCar.buyPrice + _currentCar.totalRepairPaid):N0} ₽";
 
         // 1. Готовность к продаже и стоимость ремонта (BALANCE.md, раздел 4)
         float readiness = PlayerData.Instance.CalculateSaleReadiness(_currentCar);
         textReadiness.text = $"Готовность к продаже: {Mathf.RoundToInt(readiness * 100)}%";
 
-        int totalRepairAllCost = 0;
-        foreach (var def in _currentCar.defects)
-        {
-            if (!def.isFixed)
-                totalRepairAllCost += GetDiscountedCost(def.baseRepairCost);
-        }
-
-        // 2. Быстрая продажа без торга (справедливая цена × 0.95)
+        // 2. Быстрая продажа: 60% от покупки и уже оплаченного ремонта.
         int quickPrice = PlayerData.Instance.CalculateAsIsPrice(_currentCar);
         textQuickSalePrice.text = $"Сдать сразу: {quickPrice:N0} ₽";
 
@@ -75,40 +79,12 @@ public class GarageCarDetailsUI : MonoBehaviour
         foreach (var def in _currentCar.defects)
         {
             GameObject row = Instantiate(defectRowPrefab, defectsContainer);
-            TextMeshProUGUI rowText = row.GetComponentInChildren<TextMeshProUGUI>();
-            Button rowBtn = row.GetComponentInChildren<Button>();
-
             int cost = GetDiscountedCost(def.baseRepairCost);
-
-            if (def.isFixed)
-            {
-                rowText.text = $"{def.defectName} — Отремонтировано";
-                rowBtn.gameObject.SetActive(false);
-            }
-            else
-            {
-                rowText.text = $"{def.defectName} — {cost:N0} ₽";
-                rowBtn.gameObject.SetActive(true);
-                rowBtn.interactable = PlayerData.Instance.money >= cost;
-
-                rowBtn.onClick.RemoveAllListeners();
-                rowBtn.onClick.AddListener(() => RepairDefect(def, cost));
-            }
+            row.GetComponent<RepairRowController>().Setup(_currentCar, def, cost);
         }
 
-        // 4. Кнопка "Чинить всё"
-        if (totalRepairAllCost > 0)
-        {
-            textRepairAllCost.text = $"Починить всё ({totalRepairAllCost:N0} ₽)";
-            btnRepairAll.interactable = PlayerData.Instance.money >= totalRepairAllCost;
-            btnRepairAll.onClick.RemoveAllListeners();
-            btnRepairAll.onClick.AddListener(() => RepairAll(totalRepairAllCost));
-        }
-        else
-        {
-            textRepairAllCost.text = "Все дефекты устранены";
-            btnRepairAll.interactable = false;
-        }
+        // The balance starts one repair task per car; the legacy bulk-repair button is not used.
+        if (btnRepairAll != null) btnRepairAll.interactable = false;
 
         // 5. Кнопки
         btnQuickSell.onClick.RemoveAllListeners();
@@ -119,63 +95,28 @@ public class GarageCarDetailsUI : MonoBehaviour
         {
             btnHaggle.interactable = haggleModal != null;
             btnHaggle.onClick.RemoveAllListeners();
-            btnHaggle.onClick.AddListener(() => haggleModal?.Open(_currentCar));
+            btnHaggle.onClick.AddListener(() =>
+            {
+                int ask = DefaultAskingPrice(_currentCar);
+                if (askingPriceInput != null && int.TryParse(askingPriceInput.text, out int entered))
+                    ask = Mathf.Max(10, PlayerData.RoundPrice(entered));
+                var listing = GetSaleListing(_currentCar, ask);
+                if (saleSetupPanel != null) saleSetupPanel.Open(_currentCar, listing);
+                else if (listing.buyers.Count > 0) haggleModal?.Open(_currentCar, listing.buyers[0]);
+            });
         }
 
         btnClose.onClick.RemoveAllListeners();
         btnClose.onClick.AddListener(Close);
     }
 
-    private void RepairDefect(DefectInfo def, int cost)
-    {
-        if (PlayerData.Instance.money < cost) return;
-
-        PlayerData.Instance.money -= cost;
-        _currentCar.totalRepairPaid += cost;
-        def.isFixed = true;
-
-        // Retention: ремонт дефекта двигает миссии (retention, раздел 6).
-        RetentionManager.Instance?.OnDefectsRepaired(1);
-
-        PlayerData.Instance.TickWorld();
-        UIManager.Instance.UpdateTopBar();
-        Refresh();
-        GarageManager.Instance.RefreshGarage();
-        SaveManager.Instance?.SaveAll();
-    }
-
-    private void RepairAll(int totalCost)
-    {
-        if (PlayerData.Instance.money < totalCost) return;
-
-        PlayerData.Instance.money -= totalCost;
-        _currentCar.totalRepairPaid += totalCost;
-
-        int repaired = 0;
-        foreach (var def in _currentCar.defects)
-        {
-            if (def.isFixed) continue;
-            def.isFixed = true;
-            repaired++;
-        }
-
-        // Retention: ремонт дефектов двигает миссии (retention, раздел 6).
-        RetentionManager.Instance?.OnDefectsRepaired(repaired);
-
-        PlayerData.Instance.TickWorld();
-        UIManager.Instance.UpdateTopBar();
-        Refresh();
-        GarageManager.Instance.RefreshGarage();
-        SaveManager.Instance?.SaveAll();
-    }
-
     private void QuickSell(int price)
     {
-        // Риск сюрприза на сделке (BALANCE.md, раздел 12.3)
-        int finalPrice = HaggleManager.ApplySurprise(price, out float cut);
+        int finalPrice = price;
 
         PlayerData.Instance.money += finalPrice;
         PlayerData.Instance.totalSalesCount++;
+        RepairManager.Instance?.CancelForCar(_currentCar);
         PlayerData.Instance.garage.Remove(_currentCar);
 
         // Retention: продажа «Сдать сразу» (не через покупателя) — раздел 6.
@@ -186,6 +127,7 @@ public class GarageCarDetailsUI : MonoBehaviour
 
         Close();
         GarageManager.Instance.RefreshGarage();
+        SaveManager.Instance?.SaveAll();
     }
 
     private int GetDiscountedCost(int baseCost)
@@ -193,5 +135,73 @@ public class GarageCarDetailsUI : MonoBehaviour
         int cost = PlayerData.Instance.CalculateRepairCost(baseCost);
         // Retention: временная скидка календаря (день 3). Пока баффа нет — цена не меняется.
         return RetentionManager.Instance != null ? RetentionManager.Instance.ApplyRepairDiscount(cost) : cost;
+    }
+
+    private static int DefaultAskingPrice(CarInstance car)
+    {
+        // Автоцена торга должна совпадать с рекомендованной ценой продажи.
+        return PlayerData.Instance.CalculateSellPrice(car);
+    }
+
+    private void RefreshSuggestedAskingPrice()
+    {
+        if (_currentCar == null || askingPriceInput == null) return;
+        bool stillSuggested = _lastSuggestedAskingPrice < 0 || askingPriceInput.text == _lastSuggestedAskingPrice.ToString();
+        if (!stillSuggested) return;
+
+        _lastSuggestedAskingPrice = DefaultAskingPrice(_currentCar);
+        askingPriceInput.SetTextWithoutNotify(_lastSuggestedAskingPrice.ToString());
+    }
+
+    public void RefreshRepairProgress()
+    {
+        if (_currentCar == null || !gameObject.activeInHierarchy || PlayerData.Instance == null) return;
+        RefreshSuggestedAskingPrice();
+        float visual = PlayerData.Instance.CalculateRepairProgress(_currentCar);
+        float readiness = PlayerData.Instance.CalculateSaleReadiness(_currentCar);
+        textReadiness.text = $"Ремонт: {Mathf.RoundToInt(visual * 100f)}% · готовность к продаже: {Mathf.RoundToInt(readiness * 100f)}%";
+    }
+
+    private static SaleListingData GetSaleListing(CarInstance car, int askingPrice)
+    {
+        int value = PlayerData.Instance.CalculateSellPrice(car);
+        var listing = car.saleListing;
+        if (listing == null || !listing.initialized || listing.buyers == null || listing.buyers.Count != 3)
+        {
+            var personalities = new System.Collections.Generic.List<BuyerPersonality>();
+            while (personalities.Count < 3)
+            {
+                var personality = (BuyerPersonality)Random.Range(0, 5);
+                if (!personalities.Contains(personality)) personalities.Add(personality);
+            }
+
+            listing = new SaleListingData { initialized = true, askingPrice = askingPrice, fairValue = value };
+            foreach (var personality in personalities)
+                listing.buyers.Add(HaggleManager.CreateSession(car, askingPrice, personality));
+            car.saleListing = listing;
+            return listing;
+        }
+
+        if (listing.askingPrice == askingPrice && listing.fairValue == value) return listing;
+
+        int floor = PlayerData.RoundPrice(PlayerData.Instance.CalculateAsIsPrice(car) * 1.05f);
+        foreach (var buyer in listing.buyers)
+        {
+            buyer.fairValue = value;
+            buyer.askingPrice = askingPrice;
+            buyer.maxAcceptablePrice = Mathf.Min(askingPrice, PlayerData.RoundPrice(value * buyer.ceilingMult));
+            float ratio = value > 0 ? (float)askingPrice / value : float.MaxValue;
+            float chance = askingPrice <= 2f * value
+                ? Mathf.Clamp(0.95f - 0.9f * (ratio - 1f), 0.05f, 0.95f) : 0f;
+            buyer.responseChance = chance;
+            bool canRespond = buyer.maxAcceptablePrice >= floor;
+            buyer.responded = !buyer.finished && canRespond && Random.value < chance;
+            if (buyer.currentOffer > buyer.maxAcceptablePrice)
+                buyer.currentOffer = buyer.maxAcceptablePrice;
+        }
+        listing.askingPrice = askingPrice;
+        listing.fairValue = value;
+        car.saleListing = listing;
+        return listing;
     }
 }

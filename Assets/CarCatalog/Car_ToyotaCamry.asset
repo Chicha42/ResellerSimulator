@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 29
   carName: Toyota Camry
-  requiredSalesToUnlock: 10
+  requiredSalesToUnlock: 22
   segment: 4
-  baseBuyPrice: 200000
+  baseBuyPrice: 227200
   baseSellPrice: 320000
-  repairMin: 92800
-  repairMax: 129900
+  repairMin: 153600
+  repairMax: 153600

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 7
   carName: Renault Logan
-  requiredSalesToUnlock: 5
+  requiredSalesToUnlock: 9
   segment: 2
-  baseBuyPrice: 55000
+  baseBuyPrice: 61200
   baseSellPrice: 90000
-  repairMin: 23600
-  repairMax: 30700
+  repairMin: 28810
+  repairMax: 28810

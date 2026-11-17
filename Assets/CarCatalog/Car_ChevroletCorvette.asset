@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 44
   carName: Chevrolet Corvette
-  requiredSalesToUnlock: 16
+  requiredSalesToUnlock: 42
   segment: 5
-  baseBuyPrice: 700000
+  baseBuyPrice: 798000
   baseSellPrice: 1140000
-  repairMin: 348200
-  repairMax: 487500
+  repairMin: 592800
+  repairMax: 592800

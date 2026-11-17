@@ -8,11 +8,12 @@ using UnityEngine;
 //   Daily Reward   — календарь входов на 7 дней (раздел 3)
 //   Daily Missions — 3 миссии в день: лёгкая/средняя/сложная (раздел 4)
 //   Achievements    — 15 достижений на всю игру (раздел 5)
-// UI вынесен отдельно (Assets/Scripts/UI/RetentionUI.cs) — этот файл от отрисовки не зависит.
+// UI управляется через UIManager; этот файл отвечает только за состояние и правила Retention.
 // ─────────────────────────────────────────────────────────────────────────────
 public class RetentionManager : MonoBehaviour
 {
     public static RetentionManager Instance { get; private set; }
+    private const int MostExpensiveAchievementVersion = 1;
 
     // Уведомление UI об изменении состояния и всплывающие сообщения (retention, раздел 7).
     public event Action OnChanged;
@@ -93,19 +94,14 @@ public class RetentionManager : MonoBehaviour
 
     public int CurrentPz => RetentionCatalog.PzForZone(CurrentZone);
 
-    private int MaxOpenBasePrice()
+    private int MaxCatalogBasePrice()
     {
-        int sales = PlayerData.Instance != null ? PlayerData.Instance.totalSalesCount : 0;
         var catalog = GetCatalog();
         int max = 0;
         if (catalog != null)
         {
             foreach (var c in catalog)
-                if (c != null && c.requiredSalesToUnlock <= sales && c.baseBuyPrice > max) max = c.baseBuyPrice;
-
-            if (max == 0)
-                foreach (var c in catalog)
-                    if (c != null && c.baseBuyPrice > max) max = c.baseBuyPrice;
+                if (c != null && c.baseBuyPrice > max) max = c.baseBuyPrice;
         }
         return max;
     }
@@ -139,7 +135,8 @@ public class RetentionManager : MonoBehaviour
         get
         {
             int n = 0;
-            foreach (var m in save.missions) if (IsMissionReady(m)) n++;
+            foreach (var m in save.missions)
+                if (m != null && RetentionCatalog.IsMissionAvailable((MissionType)m.type) && IsMissionReady(m)) n++;
             return n;
         }
     }
@@ -148,7 +145,25 @@ public class RetentionManager : MonoBehaviour
     public void RefreshDailyIfNeeded()
     {
         int today = TodayCode();
-        if (save.missionsDate == today && save.missions.Count > 0) return;
+        if (save.missionsDate == today && save.missions.Count > 0)
+        {
+            bool replacedUnavailable = false;
+            foreach (var mission in save.missions)
+            {
+                if (mission == null || RetentionCatalog.IsMissionAvailable((MissionType)mission.type)) continue;
+
+                var replacement = RetentionCatalog.RandomAvailableMission(mission.difficulty);
+                int zone = mission.zoneAtIssue > 0 ? mission.zoneAtIssue : CurrentZone;
+                mission.type = (int)replacement;
+                mission.target = RetentionCatalog.MissionTarget(replacement, RetentionCatalog.PzForZone(zone));
+                mission.progress = 0;
+                mission.claimed = false;
+                mission.flag = 0;
+                replacedUnavailable = true;
+            }
+            if (replacedUnavailable) Notify();
+            return;
+        }
 
         save.missionsDate = today;
         save.dayIncome = 0;
@@ -164,12 +179,11 @@ public class RetentionManager : MonoBehaviour
 
         for (int diff = 0; diff < RetentionCatalog.MissionPerDay; diff++)
         {
-            // По одной миссии каждого уровня: id 0–4 лёгкие, 5–9 средние, 10–14 сложные.
-            int typeId = UnityEngine.Random.Range(diff * 5, diff * 5 + 5);
-            var type = (MissionType)typeId;
+            // По одной миссии каждого уровня, только из доступных в текущей версии.
+            var type = RetentionCatalog.RandomAvailableMission(diff);
             save.missions.Add(new MissionSave
             {
-                type = typeId,
+                type = (int)type,
                 difficulty = diff,
                 target = RetentionCatalog.MissionTarget(type, pz),
                 progress = 0,
@@ -415,14 +429,15 @@ public class RetentionManager : MonoBehaviour
         get
         {
             int n = 0;
-            for (int i = 0; i < RetentionCatalog.AchievementCount; i++) if (IsAchievementReady(i)) n++;
+            for (int i = 0; i < RetentionCatalog.AchievementCount; i++)
+                if (RetentionCatalog.IsAchievementAvailable(i) && IsAchievementReady(i)) n++;
             return n;
         }
     }
 
     public bool ClaimAchievement(int index)
     {
-        if (index < 0 || index >= RetentionCatalog.AchievementCount) return false;
+        if (index < 0 || index >= RetentionCatalog.AchievementCount || !RetentionCatalog.IsAchievementAvailable(index)) return false;
         if (!IsAchievementComplete(index) || IsAchievementClaimed(index)) return false;
 
         save.claimedAchievementsMask |= (1 << index);
@@ -472,7 +487,8 @@ public class RetentionManager : MonoBehaviour
         if (data != null)
         {
             save.segmentsBoughtMask |= 1 << (Mathf.Clamp(data.segment, 1, 5) - 1);
-            if (data.baseBuyPrice >= MaxOpenBasePrice()) save.boughtMostExpensive = true;
+            int highestCatalogPrice = MaxCatalogBasePrice();
+            if (highestCatalogPrice > 0 && data.baseBuyPrice == highestCatalogPrice) save.boughtMostExpensive = true;
         }
 
         AddMissionProgress(MissionType.BuyTwoCars, 1);
@@ -573,6 +589,12 @@ public class RetentionManager : MonoBehaviour
     {
         if (save == null) save = new RetentionSave();
         if (save.missions == null) save.missions = new List<MissionSave>();
+        if (save.mostExpensiveAchievementVersion < MostExpensiveAchievementVersion)
+        {
+            if ((save.claimedAchievementsMask & (1 << 5)) == 0)
+                save.boughtMostExpensive = false;
+            save.mostExpensiveAchievementVersion = MostExpensiveAchievementVersion;
+        }
     }
 
     public RetentionSave Export()

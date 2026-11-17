@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 24
   carName: Peugeot 307
-  requiredSalesToUnlock: 7
+  requiredSalesToUnlock: 14
   segment: 3
-  baseBuyPrice: 95000
+  baseBuyPrice: 110880
   baseSellPrice: 154000
-  repairMin: 41900
-  repairMax: 62900
+  repairMin: 64680
+  repairMax: 64680

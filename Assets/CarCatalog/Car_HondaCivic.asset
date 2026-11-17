@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 22
   carName: Honda Civic
-  requiredSalesToUnlock: 9
+  requiredSalesToUnlock: 19
   segment: 3
-  baseBuyPrice: 150000
+  baseBuyPrice: 174240
   baseSellPrice: 242000
-  repairMin: 75500
-  repairMax: 98200
+  repairMin: 101640
+  repairMax: 101640

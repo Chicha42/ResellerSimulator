@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 50
   carName: Rolls-Royce Phantom
-  requiredSalesToUnlock: 30
+  requiredSalesToUnlock: 99
   segment: 5
-  baseBuyPrice: 3000000
+  baseBuyPrice: 3430000
   baseSellPrice: 4900000
-  repairMin: 1503000
-  repairMax: 2104200
+  repairMin: 2548000
+  repairMax: 2548000

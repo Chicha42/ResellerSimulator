@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 39
   carName: Audi Q5
-  requiredSalesToUnlock: 14
+  requiredSalesToUnlock: 35
   segment: 4
-  baseBuyPrice: 500000
+  baseBuyPrice: 568000
   baseSellPrice: 800000
-  repairMin: 216500
-  repairMax: 324700
+  repairMin: 384000
+  repairMax: 384000

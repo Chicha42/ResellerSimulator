@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 23
   carName: Skoda Octavia
-  requiredSalesToUnlock: 8
+  requiredSalesToUnlock: 17
   segment: 3
-  baseBuyPrice: 130000
+  baseBuyPrice: 151200
   baseSellPrice: 210000
-  repairMin: 61000
-  repairMax: 85400
+  repairMin: 88210
+  repairMax: 88210

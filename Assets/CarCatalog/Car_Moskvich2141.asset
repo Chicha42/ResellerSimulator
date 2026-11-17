@@ -16,7 +16,7 @@ MonoBehaviour:
   carName: "\u041C\u043E\u0441\u043A\u0432\u0438\u0447 2141"
   requiredSalesToUnlock: 0
   segment: 1
-  baseBuyPrice: 15000
+  baseBuyPrice: 16750
   baseSellPrice: 25000
-  repairMin: 5100
-  repairMax: 7100
+  repairMin: 6250
+  repairMax: 6250

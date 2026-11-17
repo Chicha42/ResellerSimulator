@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 40
   carName: Infiniti G35
-  requiredSalesToUnlock: 13
+  requiredSalesToUnlock: 32
   segment: 4
-  baseBuyPrice: 380000
+  baseBuyPrice: 433100
   baseSellPrice: 610000
-  repairMin: 191500
-  repairMax: 248900
+  repairMin: 292810
+  repairMax: 292810

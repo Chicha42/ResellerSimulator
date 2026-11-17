@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 49
   carName: McLaren F1
-  requiredSalesToUnlock: 28
+  requiredSalesToUnlock: 90
   segment: 5
-  baseBuyPrice: 2500000
+  baseBuyPrice: 2800000
   baseSellPrice: 4000000
-  repairMin: 1282100
-  repairMax: 1666700
+  repairMin: 2080000
+  repairMax: 2080000

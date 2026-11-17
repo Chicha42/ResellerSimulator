@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 33
   carName: Lexus IS
-  requiredSalesToUnlock: 12
+  requiredSalesToUnlock: 29
   segment: 4
-  baseBuyPrice: 280000
+  baseBuyPrice: 323050
   baseSellPrice: 455000
-  repairMin: 126100
-  repairMax: 189100
+  repairMin: 218400
+  repairMax: 218400

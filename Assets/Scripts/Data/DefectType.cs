@@ -17,4 +17,7 @@ public class DefectInfo
     public int baseRepairCost;
     public float sellBonus;
     public bool isFixed;
+    public bool isRepairing;
+    public float repairSecondsRemaining;
+    public float repairDurationSeconds;
 }

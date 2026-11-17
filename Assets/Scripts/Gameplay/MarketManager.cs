@@ -12,6 +12,8 @@ public class MarketManager : MonoBehaviour
     [Header("UI Ссылки")]
     public Transform cardsContainer;      // Сюда перетащи объект Content из ScrollView
     public GameObject marketCardPrefab;   // Сюда перетащи префаб карточки из папки Prefabs
+    public TextMeshProUGUI transactionNotice;
+
 
     [Header("Обновление объявлений (BALANCE.md, раздел 12.5)")]
     public Button refreshButton;
@@ -115,7 +117,7 @@ public class MarketManager : MonoBehaviour
     {
         if (PlayerData.Instance.garage.Count >= PlayerData.Instance.MaxGarageSlots)
         {
-            Debug.Log("В гараже нет мест!");
+            ShowTransactionNotice("В гараже нет свободного места.");
             return;
         }
 
@@ -137,10 +139,16 @@ public class MarketManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Не хватает денег!");
+            ShowTransactionNotice("Не хватает денег на эту машину.");
         }
 
         SaveManager.Instance?.SaveAll();
+    }
+
+    private void ShowTransactionNotice(string message)
+    {
+        if (transactionNotice == null) return;
+        UIManager.Instance?.ShowTemporaryNotice(transactionNotice, message);
     }
 
     // Запуск кулдауна: запоминаем абсолютный момент окончания (Time.time).

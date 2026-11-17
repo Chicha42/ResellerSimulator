@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 16
   carName: Kia Rio
-  requiredSalesToUnlock: 6
+  requiredSalesToUnlock: 11
   segment: 3
-  baseBuyPrice: 80000
+  baseBuyPrice: 92160
   baseSellPrice: 128000
-  repairMin: 39500
-  repairMax: 51300
+  repairMin: 53760
+  repairMax: 53760

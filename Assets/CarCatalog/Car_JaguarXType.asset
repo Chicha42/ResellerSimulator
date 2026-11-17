@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 42
   carName: Jaguar X-Type
-  requiredSalesToUnlock: 12
+  requiredSalesToUnlock: 29
   segment: 4
-  baseBuyPrice: 360000
+  baseBuyPrice: 408250
   baseSellPrice: 575000
-  repairMin: 155200
-  repairMax: 232800
+  repairMin: 276000
+  repairMax: 276000

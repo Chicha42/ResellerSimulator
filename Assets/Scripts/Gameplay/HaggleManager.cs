@@ -25,6 +25,7 @@ public enum HaggleMoveResult
 }
 
 // Состояние одной сессии торга с покупателем.
+[System.Serializable]
 public class HaggleSession
 {
     public BuyerPersonality personality;
@@ -35,8 +36,13 @@ public class HaggleSession
     public float successChance;  // Базовый шанс успеха торга
     public int patienceMax;      // Максимум терпения
     public int patienceLeft;     // Остаток терпения
-    public int fairValue;        // Справедливая цена машины (PlayerData.CalculateSellPrice)
+    public int fairValue;        // V по формуле нового баланса
+    public int failedHaggles;
     public int currentOffer;     // Текущее предложение покупателя
+    public int askingPrice;
+    public int maxAcceptablePrice;
+    public float responseChance;
+    public bool responded;
     public bool finished;        // Покупатель ушёл / сделка закрыта
 }
 
@@ -47,9 +53,6 @@ public class HaggleSession
 public class HaggleManager : MonoBehaviour
 {
     public static HaggleManager Instance { get; private set; }
-
-    // BALANCE.md, 12.1: если покупатель ушёл, новый появится не раньше чем через 5 игровых действий.
-    private const int ReopenCooldownTicks = 5;
 
     [Header("Тексты")]
     public TextMeshProUGUI textTitle;     // "Покупатель: <личность>"
@@ -89,30 +92,41 @@ public class HaggleManager : MonoBehaviour
     // Открыть окно торга для конкретной машины.
     public void Open(CarInstance car)
     {
+        int ask = PlayerData.Instance.CalculateSellPrice(car);
+        Open(car, ask);
+    }
+
+    public void Open(CarInstance car, int askingPrice)
+    {
+        Open(car, CreateSession(car, askingPrice));
+    }
+
+    public void Open(CarInstance car, HaggleSession session)
+    {
         _currentCar = car;
         _messages.Clear();
-        _session = null;
+        _session = session;
 
-        // BALANCE.md, 12.1: переоткрытие не раньше, чем через 5 тактов после создания сессии.
-        int readyAt = PlayerData.Instance.lastHaggleSessionTick + ReopenCooldownTicks;
-        if (PlayerData.Instance.actionTick < readyAt)
+        PlayerData.Instance.lastHaggleSessionTick = PlayerData.Instance.actionTick;
+        if (_session == null) return;
+        transform.SetAsLastSibling();
+
+        if (!_session.responded)
         {
-            int wait = readyAt - PlayerData.Instance.actionTick;
-            textTitle.text = "Покупателей пока нет";
-            textOffer.text = "";
+            textTitle.text = "Покупатели не откликнулись";
+            textOffer.text = $"Ваша цена: {_session.askingPrice:N0} ₽";
             textPatience.text = "";
             textChat.text = "";
-            textInfo.text = $"Новый покупатель появится через {wait} действ.";
+            textInfo.text = _session.askingPrice > _session.fairValue * 2
+                ? "Цена выше двойной справедливой стоимости. Снизьте цену объявления."
+                : "На эту цену не пришёл отклик. Попробуйте снизить цену.";
             SetActionButtons(false, false, false);
             gameObject.SetActive(true);
             return;
         }
 
-        PlayerData.Instance.lastHaggleSessionTick = PlayerData.Instance.actionTick;
-        _session = CreateSession(car);
-
         AddMessage($"{_session.buyerName} покупатель: Здравствуйте! Заберу за {_session.currentOffer:N0} ₽.");
-        textInfo.text = "";
+        textInfo.text = $"В объявлении: {_session.askingPrice:N0} ₽";
         Refresh();
         gameObject.SetActive(true);
     }
@@ -202,6 +216,7 @@ public class HaggleManager : MonoBehaviour
     {
         PlayerData.Instance.money += finalPrice;
         PlayerData.Instance.totalSalesCount++;
+        RepairManager.Instance?.CancelForCar(_currentCar);
         PlayerData.Instance.garage.Remove(_currentCar);
 
         // Retention: продажа через покупателя (retention, раздел 6). V — справедливая цена из сессии.
@@ -225,10 +240,19 @@ public class HaggleManager : MonoBehaviour
     // Новая сессия: случайная личность покупателя, стартовое предложение, потолок, терпение, шанс.
     public static HaggleSession CreateSession(CarInstance car)
     {
+        return CreateSession(car, PlayerData.Instance.CalculateSellPrice(car));
+    }
+
+    public static HaggleSession CreateSession(CarInstance car, int askingPrice)
+    {
+        return CreateSession(car, askingPrice, (BuyerPersonality)Random.Range(0, 5));
+    }
+
+    public static HaggleSession CreateSession(CarInstance car, int askingPrice, BuyerPersonality personality)
+    {
         var s = new HaggleSession
         {
-            personality = (BuyerPersonality)Random.Range(0, 5),
-            // Точка отсчёта — справедливая цена машины (BALANCE.md, раздел 1, с учётом готовности).
+            personality = personality,
             fairValue = PlayerData.Instance.CalculateSellPrice(car)
         };
 
@@ -271,7 +295,17 @@ public class HaggleManager : MonoBehaviour
         }
 
         s.patienceLeft = s.patienceMax;
-        s.currentOffer = Mathf.RoundToInt(s.fairValue * Random.Range(s.startMultMin, s.startMultMax));
+        int quickSaleFloor = PlayerData.Instance.CalculateAsIsPrice(car);
+        int balanceFloor = PlayerData.RoundPrice(quickSaleFloor * 1.05f);
+        s.askingPrice = askingPrice;
+        s.maxAcceptablePrice = Mathf.Min(askingPrice, PlayerData.RoundPrice(s.fairValue * s.ceilingMult));
+        float ratio = s.fairValue > 0 ? (float)askingPrice / s.fairValue : float.MaxValue;
+        float responseChance = askingPrice <= 2f * s.fairValue
+            ? Mathf.Clamp(0.95f - 0.9f * (ratio - 1f), 0.05f, 0.95f) : 0f;
+        s.responseChance = responseChance;
+        s.responded = s.maxAcceptablePrice >= balanceFloor && Random.value < responseChance;
+        int offer = PlayerData.RoundPrice(s.fairValue * Random.Range(s.startMultMin, s.startMultMax));
+        s.currentOffer = Mathf.Min(s.maxAcceptablePrice, Mathf.Max(balanceFloor, offer));
         return s;
     }
 
@@ -288,16 +322,18 @@ public class HaggleManager : MonoBehaviour
 
         s.patienceLeft -= cost;
 
-        float chance = s.successChance - (aggressive ? 0.20f : 0f);
+        float chance = s.successChance - s.failedHaggles * 0.20f - (aggressive ? 0.20f : 0f);
         chance = Mathf.Max(0.15f, chance); // BALANCE.md, 12.1: минимальный шанс успеха 15%.
 
         if (Random.value < chance)
         {
-            int ceiling = Mathf.RoundToInt(s.fairValue * s.ceilingMult);
-            s.currentOffer = Mathf.RoundToInt(Mathf.Lerp(s.currentOffer, ceiling, 0.5f));
+            int ceiling = s.maxAcceptablePrice > 0 ? s.maxAcceptablePrice : PlayerData.RoundPrice(s.fairValue * s.ceilingMult);
+            s.currentOffer = PlayerData.RoundPrice(Mathf.Lerp(s.currentOffer, ceiling, 0.5f));
             if (s.currentOffer > ceiling) s.currentOffer = ceiling; // не поднимаем выше потолка
             return HaggleMoveResult.Success;
         }
+
+        s.failedHaggles++;
 
         // Неудача: агрессивный торг с шансом 35% заставляет покупателя уйти сразу.
         if (aggressive && Random.value < 0.35f)
@@ -323,7 +359,7 @@ public class HaggleManager : MonoBehaviour
         if (Random.value < PlayerData.Instance.SurpriseChance)
         {
             cutPct = Random.Range(0.08f, 0.18f);
-            return Mathf.RoundToInt(price * (1f - cutPct));
+            return PlayerData.RoundPrice(price * (1f - cutPct));
         }
         return price;
     }

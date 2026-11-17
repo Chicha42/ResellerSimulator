@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 46
   carName: Lamborghini Gallardo
-  requiredSalesToUnlock: 20
+  requiredSalesToUnlock: 57
   segment: 5
-  baseBuyPrice: 1200000
+  baseBuyPrice: 1365000
   baseSellPrice: 1950000
-  repairMin: 639400
-  repairMax: 831200
+  repairMin: 1013990
+  repairMax: 1013990
