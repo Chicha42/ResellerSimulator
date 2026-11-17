@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 48
   carName: Bugatti Veyron
-  requiredSalesToUnlock: 25
+  requiredSalesToUnlock: 77
   segment: 5
-  baseBuyPrice: 2000000
+  baseBuyPrice: 2275000
   baseSellPrice: 3250000
-  repairMin: 923600
-  repairMax: 1385400
+  repairMin: 1690000
+  repairMax: 1690000

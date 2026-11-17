@@ -33,12 +33,13 @@ public class GarageSlotUI : MonoBehaviour
         emptyView.SetActive(false);
 
         textModelName.text = car.data.carName;
-        textCondition.text = $"{car.conditionName} · {car.conditionPercent}%";
+        float repairProgress = PlayerData.Instance.CalculateRepairProgress(car);
+        int conditionPercent = CurrentConditionPercent(car, repairProgress);
+        textCondition.text = $"{ConditionName(conditionPercent)} · {conditionPercent}%";
         textPrice.text = $"{car.buyPrice:N0} ₽";
 
-        // Заполнение полоски и цвет по файлу баланса
-        conditionBarFill.fillAmount = car.conditionPercent / 100f;
-        conditionBarFill.color = GetConditionColor(car.conditionPercent);
+        conditionBarFill.fillAmount = conditionPercent / 100f;
+        conditionBarFill.color = GetConditionColor(conditionPercent);
 
         // Бейджи дефектов / готовности
         int brokenCount = car.defects.FindAll(d => !d.isFixed).Count;
@@ -57,6 +58,28 @@ public class GarageSlotUI : MonoBehaviour
         btnOpenDetails.onClick.RemoveAllListeners();
         btnOpenDetails.onClick.AddListener(() => onSelect?.Invoke(_car));
     }
+
+    private void Update() => RefreshRepairProgress();
+
+    public void RefreshRepairProgress()
+    {
+        if (_car == null || filledView == null || !filledView.activeInHierarchy || PlayerData.Instance == null) return;
+        float repairProgress = PlayerData.Instance.CalculateRepairProgress(_car);
+        int pct = CurrentConditionPercent(_car, repairProgress);
+        textCondition.text = $"{ConditionName(pct)} · {pct}%";
+        conditionBarFill.fillAmount = pct / 100f;
+        conditionBarFill.color = GetConditionColor(pct);
+    }
+
+    private static int CurrentConditionPercent(CarInstance car, float repairProgress)
+    {
+        return Mathf.Clamp(Mathf.RoundToInt(car.conditionPercent + Mathf.Clamp01(repairProgress) * (100 - car.conditionPercent)), 0, 100);
+    }
+
+    private static string ConditionName(int percent) => percent >= 90 ? "Отличное"
+        : percent >= 70 ? "Хорошее"
+        : percent >= 50 ? "Среднее"
+        : percent >= 25 ? "Плохое" : "Убитое";
 
     // Настройка пустого слота с кнопкой перехода на рынок
     public void SetupEmpty()

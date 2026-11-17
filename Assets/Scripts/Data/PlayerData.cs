@@ -6,7 +6,7 @@ public class PlayerData : MonoBehaviour
     public static PlayerData Instance { get; private set; }
 
     [Header("Текущее состояние")]
-    public int money = 25000; // Стартовый баланс 25 000 ₽ (BALANCE.md, раздел 2)
+    public int money = 25000; // Стартовый баланс 25 000 ₽ (баланс 4.0, раздел 1)
     public int totalSalesCount = 0;
     public List<CarInstance> garage = new List<CarInstance>();
 
@@ -97,8 +97,8 @@ public class PlayerData : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    // Мест в гараже (BALANCE.md, раздел 5.3): старт (уровень 0) -> 2 места, уровень 1 -> 3, ..., уровень 4 -> 6.
-    public int MaxGarageSlots => 2 + garageLevel;
+    // Баланс 4.0, раздел 1: один слот на старте. Каждая покупка расширения добавляет один слот.
+    public int MaxGarageSlots => 1 + garageLevel;
 
     // Скидка склада запчастей: 0%, 10%, 20%, 30%, 40%
     public float WarehouseDiscount => warehouseLevel switch
@@ -113,52 +113,47 @@ public class PlayerData : MonoBehaviour
     // Шанс сюрприза на сделке (BALANCE.md, раздел 12.3): 16% / 12% / 8% / 4% / 0% по уровням Диагноста 0-4.
     public float SurpriseChance => Mathf.Max(0f, 0.16f - diagnostLevel * 0.04f);
 
-    // Уровень репутации 1-6 (BALANCE.md, раздел 9)
+    // Уровень репутации 0-5; прогресс определяется числом завершённых продаж.
     public int ReputationLevel
     {
         get
         {
-            if (totalSalesCount >= 40) return 6;
-            if (totalSalesCount >= 25) return 5;
-            if (totalSalesCount >= 15) return 4;
-            if (totalSalesCount >= 8)  return 3;
-            if (totalSalesCount >= 3)  return 2;
-            return 1;
+            if (totalSalesCount >= 100) return 5;
+            if (totalSalesCount >= 63) return 4;
+            if (totalSalesCount >= 38) return 3;
+            if (totalSalesCount >= 20) return 2;
+            if (totalSalesCount >= 8) return 1;
+            return 0;
         }
     }
 
     public string ReputationTitle => ReputationLevel switch
     {
-        6 => "Легенда рынка",
-        5 => "Автобарон",
-        4 => "Мастер сделок",
-        3 => "Бывалый",
-        2 => "Любитель",
+        5 => "Легенда рынка",
+        4 => "Автобарон",
+        3 => "Мастер сделок",
+        2 => "Бывалый",
+        1 => "Любитель",
         _ => "Новичок"
     };
 
     // Бонус репутации к продаже (BALANCE.md, раздел 9)
     public float ReputationBonus => ReputationLevel switch
     {
-        6 => 0.25f,
-        5 => 0.20f,
-        4 => 0.15f,
-        3 => 0.10f,
-        2 => 0.05f,
+        5 => 0.10f,
+        4 => 0.08f,
+        3 => 0.06f,
+        2 => 0.04f,
+        1 => 0.02f,
         _ => 0.0f
     };
 
     // ───────────────────────── Формулы (BALANCE.md, разделы 1, 4, 7, 11) ─────────────────────────
 
-    // BALANCE.md, раздел 7: непрерывная модель — непочиненная машина стоит эту долю табличной цены,
-    // полностью починенная = 1.0 (100% колонки «Продажа»). Нижний край непрерывной вилки прототипа — 62%.
-    // Фиксированный вариант «как есть» из раздела 7 (60% всегда) включается правкой CalculateAsIsPrice ниже.
-    private const float AsIsFloor = 0.62f;
-
-    // Стоимость ремонта с учётом склада (BALANCE.md, раздел 11: baseRepairCost × (1 − warehouseDiscount))
+    // Стоимость ремонта с учётом скидки Склада; базовые цены дефектов хранятся в CarInstance.
     public int CalculateRepairCost(int baseRepairCost)
     {
-        return Mathf.RoundToInt(baseRepairCost * (1f - WarehouseDiscount));
+        return RoundPrice(baseRepairCost * (1f - WarehouseDiscount));
     }
 
     // Готовность к продаже (0..1) — доля ВЕСА устранённых дефектов (BALANCE.md, раздел 4:
@@ -180,27 +175,40 @@ public class PlayerData : MonoBehaviour
         return totalWeight > 0f ? fixedWeight / totalWeight : 1f;
     }
 
-    // Цена продажи (BALANCE.md, раздел 1): базовая × (готовность) × (1 + репутация) × рыночный тренд.
-    // «Базовая» — табличная «Продажа» ПОЛНОСТЬЮ починенной машины (раздел 3):
-    //   readiness = 1 -> 100% табличной цены;
-    //   readiness = 0 -> AsIsFloor (62%) от неё (непрерывная модель, раздел 7).
-    // Репутация (раздел 9) и тренд (раздел 12.2) накладываются сверху; в таблицу они не входят.
+    // UI-only repair progress includes elapsed work; sale readiness changes only when a node is complete.
+    public float CalculateRepairProgress(CarInstance car)
+    {
+        if (car == null || car.defects == null || car.defects.Count == 0) return 1f;
+        float totalWeight = 0f;
+        float doneWeight = 0f;
+        foreach (var defect in car.defects)
+        {
+            totalWeight += defect.sellBonus;
+            if (defect.isFixed) doneWeight += defect.sellBonus;
+            else if (defect.isRepairing && RepairManager.Instance != null)
+                doneWeight += defect.sellBonus * RepairManager.Instance.Progress(defect);
+        }
+        return totalWeight > 0f ? Mathf.Clamp01(doneWeight / totalWeight) : 1f;
+    }
+
+    // V = S × (0.6 + 0.4 × прогресс) × (1 + бонус репутации) × тренд.
     public int CalculateSellPrice(CarInstance car)
     {
         float readiness = CalculateSaleReadiness(car);
-        float conditionFactor = AsIsFloor + (1f - AsIsFloor) * readiness; // 0.62..1.00
+        float conditionFactor = 0.6f + 0.4f * readiness;
         float value = car.data.baseSellPrice
                       * conditionFactor
                       * (1f + ReputationBonus)
                       * marketTrend;
 
-        return Mathf.RoundToInt(value);
+        return RoundPrice(value);
     }
 
-    // Быстрая продажа без торга — мгновенная сделка на 5% дешевле справедливой цены.
-    // Фиксированная версия из BALANCE.md, раздел 7: вернуть Mathf.RoundToInt(car.data.baseSellPrice * 0.6f).
+    // Быстрая продажа возвращает 60% фактически вложенных денег и не зависит от рынка.
     public int CalculateAsIsPrice(CarInstance car)
     {
-        return Mathf.RoundToInt(CalculateSellPrice(car) * 0.95f);
+        return RoundPrice((car.buyPrice + car.totalRepairPaid) * 0.6f);
     }
+
+    public static int RoundPrice(float value) => Mathf.RoundToInt(value / 10f) * 10;
 }

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 15
   carName: Ford Focus
-  requiredSalesToUnlock: 6
+  requiredSalesToUnlock: 11
   segment: 3
-  baseBuyPrice: 70000
+  baseBuyPrice: 80640
   baseSellPrice: 112000
-  repairMin: 29900
-  repairMax: 44900
+  repairMin: 47040
+  repairMax: 47040

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 6
   carName: Daewoo Nexia
-  requiredSalesToUnlock: 4
+  requiredSalesToUnlock: 6
   segment: 2
-  baseBuyPrice: 45000
+  baseBuyPrice: 50320
   baseSellPrice: 74000
-  repairMin: 17000
-  repairMax: 25500
+  repairMin: 23680
+  repairMax: 23680

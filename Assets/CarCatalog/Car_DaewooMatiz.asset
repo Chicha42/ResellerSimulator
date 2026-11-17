@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 12
   carName: Daewoo Matiz
-  requiredSalesToUnlock: 3
+  requiredSalesToUnlock: 4
   segment: 2
-  baseBuyPrice: 35000
+  baseBuyPrice: 38760
   baseSellPrice: 57000
-  repairMin: 12900
-  repairMax: 19300
+  repairMin: 18250
+  repairMax: 18250

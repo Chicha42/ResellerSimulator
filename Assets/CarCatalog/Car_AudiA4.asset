@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 21
   carName: Audi A4
-  requiredSalesToUnlock: 9
+  requiredSalesToUnlock: 19
   segment: 3
-  baseBuyPrice: 140000
+  baseBuyPrice: 162720
   baseSellPrice: 226000
-  repairMin: 61200
-  repairMax: 91800
+  repairMin: 94920
+  repairMax: 94920

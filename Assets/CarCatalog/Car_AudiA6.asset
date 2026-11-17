@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 36
   carName: Audi A6
-  requiredSalesToUnlock: 14
+  requiredSalesToUnlock: 35
   segment: 4
-  baseBuyPrice: 450000
+  baseBuyPrice: 511200
   baseSellPrice: 720000
-  repairMin: 194900
-  repairMax: 292300
+  repairMin: 345610
+  repairMax: 345610

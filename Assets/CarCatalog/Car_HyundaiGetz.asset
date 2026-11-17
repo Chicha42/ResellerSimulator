@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 14
   carName: Hyundai Getz
-  requiredSalesToUnlock: 4
+  requiredSalesToUnlock: 6
   segment: 2
-  baseBuyPrice: 48000
+  baseBuyPrice: 53040
   baseSellPrice: 78000
-  repairMin: 18800
-  repairMax: 26300
+  repairMin: 24960
+  repairMax: 24960

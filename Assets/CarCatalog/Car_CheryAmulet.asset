@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 13
   carName: Chery Amulet
-  requiredSalesToUnlock: 4
+  requiredSalesToUnlock: 6
   segment: 2
-  baseBuyPrice: 42000
+  baseBuyPrice: 46240
   baseSellPrice: 68000
-  repairMin: 17500
-  repairMax: 22800
+  repairMin: 21770
+  repairMax: 21770

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 26
   carName: Opel Astra
-  requiredSalesToUnlock: 8
+  requiredSalesToUnlock: 17
   segment: 3
-  baseBuyPrice: 115000
+  baseBuyPrice: 133920
   baseSellPrice: 186000
-  repairMin: 54100
-  repairMax: 75800
+  repairMin: 78110
+  repairMax: 78110

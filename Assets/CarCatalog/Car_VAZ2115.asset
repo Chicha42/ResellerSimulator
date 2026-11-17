@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 10
   carName: "\u0412\u0410\u0417 2115"
-  requiredSalesToUnlock: 5
+  requiredSalesToUnlock: 9
   segment: 2
-  baseBuyPrice: 52000
+  baseBuyPrice: 57800
   baseSellPrice: 85000
-  repairMin: 22300
-  repairMax: 29000
+  repairMin: 27200
+  repairMax: 27200

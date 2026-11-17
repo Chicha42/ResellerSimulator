@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 45
   carName: Ferrari 360
-  requiredSalesToUnlock: 18
+  requiredSalesToUnlock: 50
   segment: 5
-  baseBuyPrice: 900000
+  baseBuyPrice: 1015000
   baseSellPrice: 1450000
-  repairMin: 406900
-  repairMax: 610400
+  repairMin: 754000
+  repairMax: 754000

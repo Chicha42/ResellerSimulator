@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 17
   carName: Chevrolet Cruze
-  requiredSalesToUnlock: 7
+  requiredSalesToUnlock: 14
   segment: 3
-  baseBuyPrice: 90000
+  baseBuyPrice: 103680
   baseSellPrice: 144000
-  repairMin: 41200
-  repairMax: 57700
+  repairMin: 60490
+  repairMax: 60490

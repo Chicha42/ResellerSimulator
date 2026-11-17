@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 25
   carName: Citroen C4
-  requiredSalesToUnlock: 7
+  requiredSalesToUnlock: 14
   segment: 3
-  baseBuyPrice: 105000
+  baseBuyPrice: 122400
   baseSellPrice: 170000
-  repairMin: 53400
-  repairMax: 69400
+  repairMin: 71400
+  repairMax: 71400

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 19
   carName: Mazda 3
-  requiredSalesToUnlock: 8
+  requiredSalesToUnlock: 17
   segment: 3
-  baseBuyPrice: 110000
+  baseBuyPrice: 128160
   baseSellPrice: 178000
-  repairMin: 55800
-  repairMax: 72600
+  repairMin: 74760
+  repairMax: 74760

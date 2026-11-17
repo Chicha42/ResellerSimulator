@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 18
   carName: Volkswagen Golf
-  requiredSalesToUnlock: 7
+  requiredSalesToUnlock: 14
   segment: 3
-  baseBuyPrice: 100000
+  baseBuyPrice: 115200
   baseSellPrice: 160000
-  repairMin: 42700
-  repairMax: 64100
+  repairMin: 67200
+  repairMax: 67200

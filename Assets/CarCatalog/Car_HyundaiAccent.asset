@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 8
   carName: Hyundai Accent
-  requiredSalesToUnlock: 5
+  requiredSalesToUnlock: 9
   segment: 2
-  baseBuyPrice: 60000
+  baseBuyPrice: 66640
   baseSellPrice: 98000
-  repairMin: 23800
-  repairMax: 33300
+  repairMin: 31360
+  repairMax: 31360

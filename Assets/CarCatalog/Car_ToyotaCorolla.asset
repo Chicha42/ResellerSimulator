@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 27
   carName: Toyota Corolla
-  requiredSalesToUnlock: 8
+  requiredSalesToUnlock: 17
   segment: 3
-  baseBuyPrice: 125000
+  baseBuyPrice: 145440
   baseSellPrice: 202000
-  repairMin: 54800
-  repairMax: 82200
+  repairMin: 84840
+  repairMax: 84840

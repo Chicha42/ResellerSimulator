@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 28
   carName: Nissan Almera
-  requiredSalesToUnlock: 6
+  requiredSalesToUnlock: 11
   segment: 3
-  baseBuyPrice: 85000
+  baseBuyPrice: 97920
   baseSellPrice: 136000
-  repairMin: 41900
-  repairMax: 54500
+  repairMin: 57120
+  repairMax: 57120

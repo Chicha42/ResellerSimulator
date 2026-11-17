@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 43
   carName: Porsche 911
-  requiredSalesToUnlock: 15
+  requiredSalesToUnlock: 39
   segment: 5
-  baseBuyPrice: 600000
+  baseBuyPrice: 686000
   baseSellPrice: 980000
-  repairMin: 323700
-  repairMax: 420800
+  repairMin: 509600
+  repairMax: 509600

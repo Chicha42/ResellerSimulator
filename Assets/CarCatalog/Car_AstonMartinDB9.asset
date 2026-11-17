@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 47
   carName: Aston Martin DB9
-  requiredSalesToUnlock: 22
+  requiredSalesToUnlock: 65
   segment: 5
-  baseBuyPrice: 1500000
+  baseBuyPrice: 1715000
   baseSellPrice: 2450000
-  repairMin: 751500
-  repairMax: 1052100
+  repairMin: 1274010
+  repairMax: 1274010
