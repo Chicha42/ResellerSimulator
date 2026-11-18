@@ -76,7 +76,7 @@ public class UIManager : MonoBehaviour
         public TextMeshProUGUI status;
     }
 
-    private static readonly Color ReadyColor = new Color32(0, 185, 84, 255);
+    private static readonly Color ReadyColor = new Color32(0, 255, 0, 255);
     private static readonly Color RowColor = new Color32(42, 51, 74, 255);
     private static readonly Color CardColor = new Color32(31, 36, 50, 255);
     private static readonly Color NextCardColor = new Color32(42, 51, 74, 255);
@@ -284,7 +284,7 @@ public class UIManager : MonoBehaviour
             bool claimed = manager.CanClaimDailyToday
                 ? day < nextDay
                 : (manager.DailyStreak % 7 == 0 && manager.DailyStreak > 0) || day <= manager.DailyStreak;
-            card.status.text = day == nextDay && manager.CanClaimDailyToday ? "▶" : claimed ? "✓" : "";
+            card.status.text = day == nextDay && manager.CanClaimDailyToday ? "▶" : claimed ? "+" : "";
             card.background.color = day == nextDay ? NextCardColor : CardColor;
         }
 
