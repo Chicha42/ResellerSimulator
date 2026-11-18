@@ -21,18 +21,20 @@ public class SaveManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        // Подписываемся на событие инициализации SDK — грузим сейв, когда YG2 будет готов
         YG2.onGetSDKData += OnSDKReady;
     }
 
     private void OnSDKReady()
     {
-        YG2.onGetSDKData -= OnSDKReady; 
+        YG2.onGetSDKData -= OnSDKReady;
         LoadOnStart();
         _loaded = true;
     }
 
     private void Update()
     {
+        // Автосохранение раз в 2 минуты
         autoSaveTimer += Time.unscaledDeltaTime;
         if (autoSaveTimer >= AUTO_SAVE_INTERVAL)
         {
@@ -42,6 +44,7 @@ public class SaveManager : MonoBehaviour
         }
     }
 
+    // Сохранение при закрытии игры и при сворачивании (мобильные платформы)
     private void OnApplicationQuit() => SaveAll();
     private void OnApplicationPause(bool pause) { if (pause) SaveAll(); }
 
@@ -52,20 +55,26 @@ public class SaveManager : MonoBehaviour
         string json = JsonUtility.ToJson(data);
         Debug.Log("[SAVE] JSON:\n" + json);
 
-        // 1. Локально (LocalStorage)
+        // 1. Сохраняем локально (LocalStorage)
         PlayerPrefs.SetString(LOCAL_KEY, json);
         PlayerPrefs.Save();
 
-        // 2. В облако YG2 
-        YG2.SetState("cloud_money", data.money);
-        YG2.SetState("cloud_sales", data.totalSalesCount);
-        YG2.SetState("cloud_diag", data.diagnostLevel);
-        YG2.SetState("cloud_ware", data.warehouseLevel);
-        YG2.SetState("cloud_garage", data.garageLevel);
-        YG2.SetState("cloud_trend_x100", Mathf.RoundToInt(data.marketTrend * 100f));
-        YG2.SetState("cloud_tick", data.actionTick);
-        YG2.SetState("cloud_haggle_tick", data.lastHaggleSessionTick);
-
+        // 2. Сохраняем ключевые числа в облако YG2
+        if (RetentionManager.Instance != null)
+        {
+            var r = RetentionManager.Instance.Export();
+            YG2.SetState("cloud_daily_streak", r.dailyStreak);
+            YG2.SetState("cloud_daily_date", r.lastDailyClaimDate);
+            YG2.SetState("cloud_missions_date", r.missionsDate);
+            YG2.SetState("cloud_money", data.money);
+            YG2.SetState("cloud_sales", data.totalSalesCount);
+            YG2.SetState("cloud_diag", data.diagnostLevel);
+            YG2.SetState("cloud_ware", data.warehouseLevel);
+            YG2.SetState("cloud_garage", data.garageLevel);
+            YG2.SetState("cloud_trend_x100", Mathf.RoundToInt(data.marketTrend * 100f));
+            YG2.SetState("cloud_tick", data.actionTick);
+            YG2.SetState("cloud_haggle_tick", data.lastHaggleSessionTick);
+        }
 
         YG2.SaveProgress();
         Debug.Log("[SAVE] Сохранено локально + ключевые числа в облако");
@@ -86,6 +95,7 @@ public class SaveManager : MonoBehaviour
             lastHaggleSessionTick = p.lastHaggleSessionTick
         };
 
+        // Переносим все машины из гаража в сохраняемый формат
         foreach (var car in p.garage)
         {
             CarSave cs = new CarSave
@@ -113,13 +123,17 @@ public class SaveManager : MonoBehaviour
             data.garage.Add(cs);
         }
 
+        // Забираем состояние retention-системы (миссии, daily reward, достижения)
+        if (RetentionManager.Instance != null)
+            data.retention = RetentionManager.Instance.Export();
+
         return data;
     }
 
 
     public void LoadOnStart()
     {
-        // Шаг 1. Облако
+        // Шаг 1. Пробуем облако (числа)
         int cloudMoney = YG2.GetState("cloud_money");
         int cloudSales = YG2.GetState("cloud_sales");
         int cloudDiag = YG2.GetState("cloud_diag");
@@ -129,10 +143,11 @@ public class SaveManager : MonoBehaviour
         int cloudTick = YG2.GetState("cloud_tick");
         int cloudHaggleTick = YG2.GetState("cloud_haggle_tick");
 
-        // Если в облаке что-то есть (money > 0) — берём облако
+        bool loadedFromCloud = false;
+
         if (cloudMoney > 0)
         {
-            Debug.Log("[LOAD] Данные из ОБЛАКА");
+            Debug.Log("[LOAD] Данные из облака (числа)");
 
             var p = PlayerData.Instance;
             p.money = cloudMoney;
@@ -144,33 +159,48 @@ public class SaveManager : MonoBehaviour
             p.actionTick = cloudTick;
             p.lastHaggleSessionTick = cloudHaggleTick == 0 ? -999 : cloudHaggleTick;
 
-            // Купленные машины попробуем восстановить из локального JSON
-            // (в облаке хранятся только числа)
-            LoadGarageFromLocal();
+            loadedFromCloud = true;
+        }
+
+        // Шаг 2. Локальный JSON — грузим гараж И retention ВСЕГДА
+        // (в облаке их нет, там только числа)
+        if (PlayerPrefs.HasKey(LOCAL_KEY))
+        {
+            string json = PlayerPrefs.GetString(LOCAL_KEY);
+            Debug.Log("[LOAD] Локальный JSON:\n" + json);
+
+            try
+            {
+                SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+                if (loadedFromCloud)
+                {
+                    // Числа уже взяли из облака, из локала добираем только гараж и retention
+                    RebuildGarage(data.garage);
+
+                    if (RetentionManager.Instance != null && data.retention != null)
+                        RetentionManager.Instance.Import(data.retention);
+                }
+                else
+                {
+                    // Облако пустое — берём всё из локала
+                    Debug.Log("[LOAD] Облако пусто — берём всё из локала");
+                    ApplyToPlayerData(data);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[LOAD] Битый JSON: " + e.Message);
+            }
 
             UIManager.Instance?.UpdateTopBar();
             GarageManager.Instance?.RefreshGarage();
             return;
         }
 
-        // Шаг 2. LocalStorage
-        if (PlayerPrefs.HasKey(LOCAL_KEY))
-        {
-            string json = PlayerPrefs.GetString(LOCAL_KEY);
-            Debug.Log("[LOAD] Данные из ЛОКАЛА:\n" + json);
-            try
-            {
-                SaveData data = JsonUtility.FromJson<SaveData>(json);
-                ApplyToPlayerData(data);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[LOAD] Битый JSON: " + e.Message);
-            }
-            return;
-        }
-
-        Debug.Log("[LOAD] Новый игрок — данные по умолчанию");
+        // Шаг 3. Ни облака, ни локала — новый игрок
+        if (!loadedFromCloud)
+            Debug.Log("[LOAD] Новый игрок — данных нигде нет");
     }
 
     private void LoadGarageFromLocal()
@@ -200,6 +230,10 @@ public class SaveManager : MonoBehaviour
         p.lastHaggleSessionTick = data.lastHaggleSessionTick;
 
         RebuildGarage(data.garage);
+
+        // Применяем загруженное состояние retention-системы
+        if (RetentionManager.Instance != null)
+            RetentionManager.Instance.Import(data.retention);
 
         UIManager.Instance?.UpdateTopBar();
         GarageManager.Instance?.RefreshGarage();
@@ -275,6 +309,9 @@ public class SaveManager : MonoBehaviour
         YG2.SetState("cloud_trend_x100", 0);
         YG2.SetState("cloud_tick", 0);
         YG2.SetState("cloud_haggle_tick", 0);
+        YG2.SetState("cloud_daily_streak", 0);
+        YG2.SetState("cloud_daily_date", 0);
+        YG2.SetState("cloud_missions_date", 0);
         YG2.SaveProgress();
 
         // 3. Сбрасываем данные игрока в исходное состояние
@@ -288,6 +325,9 @@ public class SaveManager : MonoBehaviour
         p.actionTick = 0;
         p.lastHaggleSessionTick = -999;
         p.garage.Clear();
+
+        // Сбрасываем retention-систему (миссии, daily reward, достижения)
+        RetentionManager.Instance?.ResetAll();
 
         // 4. Обновляем интерфейс
         UIManager.Instance?.UpdateTopBar();
