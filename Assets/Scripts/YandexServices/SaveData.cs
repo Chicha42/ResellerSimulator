@@ -3,7 +3,7 @@ using System.Collections.Generic;
 [System.Serializable]
 public class DefectSave
 {
-    public int type;           
+    public int type;
     public int baseRepairCost;
     public float sellBonus;
     public bool isFixed;
@@ -12,7 +12,7 @@ public class DefectSave
 [System.Serializable]
 public class CarSave
 {
-    public int carDataId;      
+    public int carDataId;
     public int segment;
     public int conditionPercent;
     public string conditionName;
@@ -33,4 +33,5 @@ public class SaveData
     public int actionTick;
     public int lastHaggleSessionTick;
     public List<CarSave> garage = new List<CarSave>();
+    public RetentionSave retention = new RetentionSave();
 }
